@@ -1,8 +1,14 @@
 {
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "postcss": "^8.5.6"
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "dev": "npx tailwindcss -i ./public/style.css -o ./public/dist/output.css --watch",
+    "build": "npx tailwindcss -i ./public/style.css -o ./public/dist/output.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.18"
   }
 }
