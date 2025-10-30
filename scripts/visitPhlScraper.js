@@ -1,3 +1,4 @@
+// code was borrowed from this tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
 const cheerio = require('cheerio');
 
 (async () => {
@@ -11,6 +12,30 @@ const cheerio = require('cheerio');
     const items = $(ARTICLE_SELECTOR).map((i, event) => {
         const $eventSection = $(event);
 
+        let title = $eventSection.find('b').text()
+            .replace(/\t/g, "")
+            .split(':')   
+            .filter(item => item !== "")                
+            .map(str => str.trim())
+            .filter(str => str.trim() !== "");  
+            
+        if (title.length === 0) {
+            title = $eventSection.find('h2').text()
+                .replace(/\t/g, "")
+                .split('\n')
+                .filter(item => item !== "")
+                .filter(str => str.trim() !== "")
+        }
+
+        const date = $eventSection.find('.vp-body-subhead-2').text()
+            .split('\n')
+            .filter(item => item !== "")
+            .filter(str => str.trim() !== "")
+            .filter(item => !item.includes("Dates vary by"))
+            .filter(item => !item.includes("Ongoing"));
+
+        const description = [];
+
         const location = $eventSection.find('.vp-article-section__details').text()
             .replace(/\t/g, "")
             .replaceAll("Where: ", "")
@@ -18,21 +43,12 @@ const cheerio = require('cheerio');
             .filter(item => item !== "")
             .filter(str => str.trim() !== "")
             .filter(item => !item.includes("VIEW OTHER LOCATIONS"));
-        return {location};
+        return {title, date, description, location};
     }).get().flat();
 
-    // turn following into arrays
-    const title = $('b').text();
-    const dates = $('.vp-body-subhead-2').text();
-    const body = $('.vp-article-section__body').text();
-    // title and description need to be broken apart
+    const description = $('.vp-article-section__body').text();
 
-    //console.log(title);
     console.log(items);
-    //console.log(body);
-    //console.log(location);
+    //console.log(description);
+
 })();
-
-// tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
-
-// mapping dates and locations to several events under one big event: loop through big event, and query for each date, location, etc
