@@ -15,10 +15,10 @@ const cheerio = require('cheerio');
         let title = $eventSection.find('b').text()
             .replace(/\t/g, "")
             .split(':')   
-            .filter(item => item !== "")                
-            .map(str => str.trim())
-            .filter(str => str.trim() !== "");  
-            
+            .filter(item => item !== "")       
+            .filter(str => str.trim() !== "")          
+            .map(str => str.trim());
+
         if (title.length === 0) {
             title = $eventSection.find('h2').text()
                 .replace(/\t/g, "")
@@ -43,6 +43,11 @@ const cheerio = require('cheerio');
             .filter(item => item !== "")
             .filter(str => str.trim() !== "")
             .filter(item => !item.includes("VIEW OTHER LOCATIONS"));
+
+        if (date.length === 0 && description.length === 0 && location.length === 0) {
+            return null;
+        }
+
         return {title, date, description, location};
     }).get().flat();
 
