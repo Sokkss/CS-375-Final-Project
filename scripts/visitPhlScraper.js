@@ -31,8 +31,8 @@ const cheerio = require('cheerio');
             .split('\n')
             .filter(item => item !== "")
             .filter(str => str.trim() !== "")
-            .filter(item => !item.includes("Dates vary by"))
-            .filter(item => !item.includes("Ongoing"));
+            // .filter(item => !item.includes("Dates vary by"))
+            // .filter(item => !item.includes("Ongoing"));
 
         const description = [];
 
