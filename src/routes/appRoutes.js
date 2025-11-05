@@ -45,6 +45,14 @@ function createRoutes(pool) {
         })
     });
 
+    router.get("/", (req, res) => {
+        res.sendFile("./pages/index.html", {root: "public"});
+    });
+
+    router.get("/map", (req, res) => {
+        res.sendFile("./pages/map.html", {root: "public"});
+    });
+
   return router;
 }
 
