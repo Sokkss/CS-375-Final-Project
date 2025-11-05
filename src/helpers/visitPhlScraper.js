@@ -8,7 +8,7 @@ const cheerio = require('cheerio');
     const $ = cheerio.load(await response.text());
 
     const ARTICLE_SELECTOR = '.vp-article-section__content';
-    const ITEM_SELECTOR = 'ul'
+    const ITEM_SELECTOR = 'ul';
 
     const events = $(ARTICLE_SELECTOR).map((i, event) => {
         const $eventSection = $(event);
@@ -27,7 +27,7 @@ const cheerio = require('cheerio');
                 .replaceAll('\n', ' ')
                 .replaceAll('\t', ' ');
 
-            return {title, description}
+            return {title, description};
         }).get();
 
         if (items.length === 0) {
@@ -90,7 +90,7 @@ const cheerio = require('cheerio');
             let description = item.description;
             let location = locations[i];
 
-            let event = {title, date, location, description}
+            let event = {title, date, location, description};
             formattedEvents.push(event);
 
             i++;
