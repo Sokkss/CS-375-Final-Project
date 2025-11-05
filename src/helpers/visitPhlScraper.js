@@ -1,4 +1,4 @@
-// code was borrowed from this tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
+// base code was borrowed from this tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
 const cheerio = require('cheerio');
 
 (async () => {
@@ -8,35 +8,57 @@ const cheerio = require('cheerio');
     const $ = cheerio.load(await response.text());
 
     const ARTICLE_SELECTOR = '.vp-article-section__content';
+    const ITEM_SELECTOR = 'ul';
 
-    const items = $(ARTICLE_SELECTOR).map((i, event) => {
+    const events = $(ARTICLE_SELECTOR).map((i, event) => {
         const $eventSection = $(event);
 
-        let title = $eventSection.find('b').text()
-            .replace(/\t/g, "")
-            .split(':')   
-            .filter(item => item !== "")       
-            .filter(str => str.trim() !== "")          
-            .map(str => str.trim());
+        let items = $eventSection.find(ITEM_SELECTOR).map((j, item) => {
+            const $itemSection = $(item);
 
-        if (title.length === 0) {
-            title = $eventSection.find('h2').text()
-                .replace(/\t/g, "")
-                .split('\n')
-                .filter(item => item !== "")
-                .filter(str => str.trim() !== "")
+            let title = $itemSection.find('b').text()
+                .replace(/\s+$/, '')
+                .replace(/:$/, '');
+
+            let description = $itemSection.text()
+                .replace(title, "")
+                .replace(/\s+/, '')
+                .replace(/: /, '')
+                .replaceAll('\n', ' ')
+                .replaceAll('\t', ' ');
+
+            return {title, description};
+        }).get();
+
+        if (items.length === 0) {
+            let title = $eventSection.find('.vp-article-section__heading').text().trim();
+
+            let $body = $eventSection.find('.vp-article-section__body').clone();
+            $body.find('.vp-body-subhead-2').remove();
+
+            let description = $body.text()
+                .replace(/\s+/g, ' ')
+                .replaceAll('\n', ' ')
+                .replaceAll('\t', ' ')
+                .trim();
+
+            let item = {title, description};
+
+            items.push(item);
         }
 
-        const date = $eventSection.find('.vp-body-subhead-2').text()
-            .split('\n')
-            .filter(item => item !== "")
-            .filter(str => str.trim() !== "")
-            // .filter(item => !item.includes("Dates vary by"))
-            // .filter(item => !item.includes("Ongoing"));
+        let date = $eventSection.find('.vp-body-subhead-2').text()
+            .replaceAll('\n', '')
+            .replaceAll('\t', '')
+            .trim();
 
-        const description = [];
+        if (date.length === 0) {
+            date = $eventSection.find('.vp-article-section__date-time').text()
+                .replace(/\s\|.*/, '')
+                .trim();
+        }
 
-        const location = $eventSection.find('.vp-article-section__details').text()
+        const locations = $eventSection.find('.vp-article-section__details').text()
             .replace(/\t/g, "")
             .replaceAll("Where: ", "")
             .split('\n')
@@ -44,16 +66,37 @@ const cheerio = require('cheerio');
             .filter(str => str.trim() !== "")
             .filter(item => !item.includes("VIEW OTHER LOCATIONS"));
 
-        if (date.length === 0 && description.length === 0 && location.length === 0) {
+        if (date.length === 0 || locations.length === 0 || items.length === 0) {
             return null;
         }
 
-        return {title, date, description, location};
+        return {items, date, locations};
     }).get().flat();
 
-    const description = $('.vp-article-section__body').text();
+    let formattedEvents = []
 
-    console.log(items);
-    //console.log(description);
+    for (let section of events) {
+        let items = section.items;
+        let date = section.date;
+        let locations = section.locations;
 
+        if (items.length !== locations.length) {
+            continue;
+        }
+
+        let i = 0;
+        for (let item of items) {
+            let title = item.title;
+            let description = item.description;
+            let location = locations[i];
+
+            let event = {title, date, location, description};
+            formattedEvents.push(event);
+
+            i++;
+        }
+    }
+
+    console.log(formattedEvents);
+    return formattedEvents;
 })();
