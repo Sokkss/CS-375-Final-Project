@@ -1,6 +1,6 @@
 let app = require("./src/app");
 
-let hostname = "localhost";
+let hostname = "0.0.0.0";
 let port = 3000;
 
 app.listen(port, hostname, () => {
