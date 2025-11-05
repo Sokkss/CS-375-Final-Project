@@ -13,7 +13,7 @@ const cheerio = require('cheerio');
     const events = $(RESULTS_SELECTOR).map((i, event) => {
         const $eventSection = $(event);
 
-        const title = $eventSection.find('aria-label').text().trim();
+        const title = $eventSection.find('a').attr('aria-label').text().trim();
 
         let $body = $eventSection.find('.vp-article-section__body').clone();
         $body.find('.vp-body-subhead-2').remove();
@@ -44,25 +44,17 @@ const cheerio = require('cheerio');
     let formattedEvents = []
 
     for (let section of events) {
-        let items = section.items;
+        let title = section.title;
         let date = section.date;
         let locations = section.locations;
+        let description = section.description;
 
         if (items.length !== locations.length) {
             continue;
         }
 
-        let i = 0;
-        for (let item of items) {
-            let title = item.title;
-            let description = item.description;
-            let location = locations[i];
-
-            let event = {title, date, location, description};
-            formattedEvents.push(event);
-
-            i++;
-        }
+        let event = {title, date, location, description};
+        formattedEvents.push(event);
     }
 
     console.log(formattedEvents);
