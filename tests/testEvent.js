@@ -1,4 +1,4 @@
-const Event = require('./models/Event');
+const Event = require('../src/models/Event');
 
 const myEvent = new Event(
   1,
