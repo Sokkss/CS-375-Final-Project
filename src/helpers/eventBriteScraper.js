@@ -4,43 +4,53 @@ const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
 
 (async () => {
-    const url = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
+    const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
+
+    let formattedEvents = [];
+
+    for (let currentPage = 1; currentPage <= 50; currentPage++) {
+        const url = `${BASE_URL}?page=${currentPage}`;
+        await page.goto(url, { timeout: 60000 });
+
+        const RESULTS_SELECTOR = '.SearchResultPanelContentEventCardList-module__eventList___2wk-D';
+        await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
+
+        const html = await page.content();
+        const $ = cheerio.load(html);
     
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+        const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
+            const $eventSection = $(event);
+            const title = $eventSection.find('a[aria-label]').attr('aria-label').trim();
+            const description = $eventSection.find('a[aria-label]').attr('href');
 
-    const RESULTS_SELECTOR = '.SearchResultPanelContentEventCardList-module__eventList___2wk-D';
-    await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
+            const pClass = $eventSection.find('p').map((_, p) => $(p).text().trim()).get();
 
-    const html = await page.content();
-    const $ = cheerio.load(html);
-   
-    const events = $(RESULTS_SELECTOR).find('a[aria-label]').map((i, event) => {
-        const $eventSection = $(event);
-        const title = $eventSection.attr('aria-label').trim();
-        const description = $eventSection.attr('href');
+            let date = '';
+            let location = '';
 
-        const $eventCard = $eventSection.closest('li, div, article');
-        const p = $eventCard.find('p').map((_, p) => $(p).text().trim()).get();
+            for (let i = 0; i < pClass.length; i++) {
+                if (pClass[i].match(/\b(Today|Tomorrow|Sunday)\b/)) {
+                    date = pClass[i].replace("• ", '');
+                    location = pClass[i + 1].replace("· ", '');;
+                    break;
+                }
+            }
 
-        const date = p[0];
-        const location = p[1];
+            return {title, date, description, location};
+        }).get();
 
-        return {title, date, description, location};
-    }).get().flat();
+        for (let section of events) {
+            let title = section.title;
+            let date = section.date;
+            let location = section.location;
+            let description = section.description;
 
-    let formattedEvents = []
-
-    for (let section of events) {
-        let title = section.title;
-        let date = section.date;
-        let location = section.location;
-        let description = section.description;
-
-        let event = {title, date, location, description};
-        formattedEvents.push(event);
+            let event = {title, date, location, description};
+            formattedEvents.push(event);
+        }
     }
 
     console.log(formattedEvents);
