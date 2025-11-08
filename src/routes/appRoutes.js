@@ -1,6 +1,6 @@
 const express = require('express');
 
-// citation: largely from the professor's sample code
+// citation: largely from Professor Long's sample code
 function createRoutes(pool) {
     const router = express.Router();
 
