@@ -23,8 +23,8 @@ const puppeteer = require('puppeteer');
     
         const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
             const $eventSection = $(event);
-            const title = $eventSection.find('a[aria-label]').attr('aria-label').trim();
-            const description = $eventSection.find('a[aria-label]').attr('href');
+            const title = $eventSection.find('a').attr('aria-label').trim();
+            const description = $eventSection.find('a').attr('href');
 
             const pClass = $eventSection.find('p').map((_, p) => $(p).text().trim()).get();
 
