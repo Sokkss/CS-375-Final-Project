@@ -1,17 +1,40 @@
-let app = require("./src/app");
-const db = require("./src/config/database");
+// citation: largely from the professor's sample code
 
-let hostname = "0.0.0.0";
-let port = process.env.PORT || 3000;
+let { Pool } = require("pg");
+let createApp = require("./src/app");
 
-db.testConnection()
-  .then(() => {
-    console.log("Database connection verified successfully");
-  })
-  .catch((error) => {
-    console.error("Database connection test failed:", error.message);
-  });
+process.chdir(__dirname);
 
-app.listen(port, hostname, () => {
-    console.log(`Listening at: http://${hostname}:${port}`);
+let port = 3000;
+let host;
+let databaseConfig;
+
+// fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
+if (process.env.NODE_ENV == "production") {
+	host = "0.0.0.0";
+	databaseConfig = { connectionString: process.env.DATABASE_URL };
+} else {
+	host = "localhost";
+	let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
+	databaseConfig = { user: PGUSER, password: PGPASSWORD, database: PGDATABASE, host: PGHOST, port: PGPORT };
+}
+
+let pool = new Pool(databaseConfig);
+pool.connect().then(() => {
+	console.log("Connected to db");
+});
+
+/*
+KEEP EVERYTHING ABOVE HERE
+REPLACE THE FOLLOWING WITH YOUR SERVER CODE 
+*/
+
+let app = createApp(pool);
+
+/*
+KEEP EVERYTHING BELOW HERE
+*/
+
+app.listen(port, host, () => {
+	console.log(`http://${host}:${port}`);
 });
