@@ -34,7 +34,7 @@ const puppeteer = require('puppeteer');
             for (let i = 0; i < pClass.length; i++) {
                 if (pClass[i].match(/\b(Today|Tomorrow|Sunday)\b/)) {
                     date = pClass[i].replace("• ", '');
-                    location = pClass[i + 1].replace("· ", '');;
+                    location = pClass[i + 1].replace("· ", '');
                     break;
                 }
             }
