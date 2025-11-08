@@ -1,11 +1,16 @@
 let express = require("express");
-const appRoutes = require("./routes/appRoutes");
+const createRoutes = require("./routes/appRoutes");
 
-let app = express();
+function createApp(pool) {
+  let app = express();
 
-app.use(express.json());
-app.use(express.static("public"));
+  app.use(express.json());
+  app.use(express.static("public"));
 
-app.use(appRoutes);
+  const routes = createRoutes(pool);
+  app.use(routes);
 
-module.exports = app;
+  return app;
+}
+
+module.exports = createApp;
