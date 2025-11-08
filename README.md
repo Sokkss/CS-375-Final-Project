@@ -7,27 +7,39 @@
    npm install
    ```
 
-2. Create a `.env` file:
+2. Create a `.env` file, and adjust the example values to match the real ones:
    ```bash
    cp .env-example .env
    ```
 
-3. Build the CSS:
+3. Set up the database (Fly.io, requires `flyctl` and an attached Postgres app) -- NOTE: I don't think we need to do this more than once, I (Sean) already ran this so you probably will not have to at any point:
    ```bash
-   npm run build
+   npm run setup
    ```
+   This will drop/recreate the `foo` table and insert sample rows.
 
-4. Start the server:
+4. Set up a local database:
+   ```bash
+   npm run setup:local
+   ```
+   This command expects a local Postgres instance reachable at the values in `.env`.
+
+5. Start the server:
    ```bash
    npm start
+   ```
+   For local development with `.env`, use:
+   ```bash
+   npm run start:local
    ```
 
 ## Development
 
-- Run `npm run dev` to automatically rebuild CSS when you make changes
-- Run `npm run build` to build CSS once
-- Make sure your HTML files use `dist/output.css`, not `style.css`, and don't edit `dist/output.css` as this is the
-  output of the built Tailwind CSS
+- `npm run start:local` loads `.env` and starts `server.js`
+- `npm start` runs the server without loading `.env`
+- `npm run setup` applies `setup.sql` to the Fly Postgres database
+- `npm run setup:local` applies `setup.sql` to a local Postgres instance
+- `npm run build` / `npm run dev` keep working for Tailwind CSS if you need the compiled assets
 
 ## Project Structure
 

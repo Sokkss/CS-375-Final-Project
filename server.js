@@ -19,6 +19,11 @@ if (process.env.NODE_ENV == "production") {
 	databaseConfig = { user: PGUSER, password: PGPASSWORD, database: PGDATABASE, host: PGHOST, port: PGPORT };
 }
 
+// uncomment these to debug
+console.log(JSON.stringify(process.env, null, 2));
+console.log(JSON.stringify(databaseConfig, null, 2));
+
+
 let pool = new Pool(databaseConfig);
 pool.connect().then(() => {
 	console.log("Connected to db");
