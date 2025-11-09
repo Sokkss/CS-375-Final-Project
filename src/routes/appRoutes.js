@@ -2,11 +2,11 @@ const express = require('express');
 
 const getPhillyNextWeek = require('../controllers/controller');
 
-router.get('/events/philly/next-week', getPhillyNextWeek);
-
 // citation: largely from Professor Long's sample code
 function createRoutes(pool) {
     const router = express.Router();
+
+    router.get('/events/philly/next-week', getPhillyNextWeek);
 
     router.post("/datum", (req, res) => {
         let { datum } = req.body;
