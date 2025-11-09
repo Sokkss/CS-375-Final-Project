@@ -1,0 +1,199 @@
+const eventService = require('../services/eventService');
+
+// Event Controller - handles HTTP requests for events
+
+// Create a new event
+async function createEvent(req, res, pool) {
+    try {
+        const { title, description, location, time, owner, image, externalLink } = req.body;
+        
+        // Validate required fields
+        if (!title || !location || !time || !owner) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: title, location, time, and owner are required' 
+            });
+        }
+        
+        // Create event data object
+        const eventData = {
+            title,
+            description: description || '',
+            location,
+            time,
+            owner,
+            image: image || null,
+            externalLink: externalLink || null
+        };
+        
+        // Save to database
+        const savedEvent = await eventService.saveEvent(pool, eventData);
+        
+        return res.status(201).json({
+            message: 'Event created successfully',
+            event: savedEvent
+        });
+    } catch (error) {
+        console.error('Error in createEvent controller:', error);
+        return res.status(500).json({ error: 'Failed to create event' });
+    }
+}
+
+// Get all events
+async function getAllEvents(req, res, pool) {
+    try {
+        const events = await eventService.getAllEvents(pool);
+        
+        return res.status(200).json({
+            count: events.length,
+            events
+        });
+    } catch (error) {
+        console.error('Error in getAllEvents controller:', error);
+        return res.status(500).json({ error: 'Failed to retrieve events' });
+    }
+}
+
+// Get a single event by ID
+async function getEventById(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const event = await eventService.getEventById(pool, eventId);
+        
+        if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        
+        return res.status(200).json({ event });
+    } catch (error) {
+        console.error('Error in getEventById controller:', error);
+        return res.status(500).json({ error: 'Failed to retrieve event' });
+    }
+}
+
+// Update an event
+async function updateEvent(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const { title, description, location, time, image, externalLink } = req.body;
+        
+        // Validate required fields
+        if (!title || !location || !time) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: title, location, and time are required' 
+            });
+        }
+        
+        const eventData = {
+            title,
+            description: description || '',
+            location,
+            time,
+            image: image || null,
+            externalLink: externalLink || null
+        };
+        
+        const updatedEvent = await eventService.updateEvent(pool, eventId, eventData);
+        
+        if (!updatedEvent) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        
+        return res.status(200).json({
+            message: 'Event updated successfully',
+            event: updatedEvent
+        });
+    } catch (error) {
+        console.error('Error in updateEvent controller:', error);
+        return res.status(500).json({ error: 'Failed to update event' });
+    }
+}
+
+// Delete an event
+async function deleteEvent(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const deleted = await eventService.deleteEvent(pool, eventId);
+        
+        if (!deleted) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        
+        return res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteEvent controller:', error);
+        return res.status(500).json({ error: 'Failed to delete event' });
+    }
+}
+
+// RSVP to an event
+async function rsvpToEvent(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+        
+        const added = await eventService.addRSVP(pool, userId, eventId);
+        
+        if (!added) {
+            return res.status(400).json({ error: 'Already RSVP\'d to this event' });
+        }
+        
+        return res.status(200).json({ message: 'RSVP added successfully' });
+    } catch (error) {
+        console.error('Error in rsvpToEvent controller:', error);
+        return res.status(500).json({ error: 'Failed to add RSVP' });
+    }
+}
+
+// Cancel RSVP to an event
+async function cancelRSVP(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+        
+        const removed = await eventService.removeRSVP(pool, userId, eventId);
+        
+        if (!removed) {
+            return res.status(404).json({ error: 'RSVP not found' });
+        }
+        
+        return res.status(200).json({ message: 'RSVP cancelled successfully' });
+    } catch (error) {
+        console.error('Error in cancelRSVP controller:', error);
+        return res.status(500).json({ error: 'Failed to cancel RSVP' });
+    }
+}
+
+// Get attendees for an event
+async function getEventAttendees(req, res, pool) {
+    try {
+        const eventId = req.params.id;
+        const attendees = await eventService.getEventAttendees(pool, eventId);
+        
+        return res.status(200).json({
+            count: attendees.length,
+            attendees
+        });
+    } catch (error) {
+        console.error('Error in getEventAttendees controller:', error);
+        return res.status(500).json({ error: 'Failed to retrieve attendees' });
+    }
+}
+
+module.exports = {
+    createEvent,
+    getAllEvents,
+    getEventById,
+    updateEvent,
+    deleteEvent,
+    rsvpToEvent,
+    cancelRSVP,
+    getEventAttendees
+};

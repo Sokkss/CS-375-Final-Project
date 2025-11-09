@@ -1,26 +1,191 @@
-<!-- UI for creating, editing, and managing events -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Events</title>
-	<link rel="stylesheet" type="text/css" href="../dist/output.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events</title>
+    <link href="../dist/output.css" rel="stylesheet" type="text/css">
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <nav class="flex justify-between items-center p-2">
+    <!-- Navigation Bar -->
+    <nav class="flex justify-between items-center p-2 bg-white shadow-sm">
         <div>
             <img src="../images/temp-logo.png" alt="Logo" class="w-8 h-8">
         </div>
         <div class="flex space-x-6 text-sm">
-            <a href="../index.html">Home</a>
-            <a href="login.html">Login</a>
-            <a href="search.html">Search</a>
-            <a href="events.html">Events</a>
-            <a href="calendar.html">Calendar</a>
+            <a href="../index.html" class="hover:text-blue-600">Home</a>
+            <a href="login.html" class="hover:text-blue-600">Login</a>
+            <a href="search.html" class="hover:text-blue-600">Search</a>
+            <a href="events.html" class="font-bold text-blue-600">Events</a>
+            <a href="calendar.html" class="hover:text-blue-600">Calendar</a>
         </div>
         <div>
             <img src="../images/user.png" alt="User" class="w-8 h-8">
         </div>
     </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Events in Philadelphia</h1>
+        
+        <!-- Create Event Button -->
+        <div class="mb-6">
+            <button 
+                id="toggleFormBtn"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
+            >
+                + Create New Event
+            </button>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div id="message" class="hidden mb-4 p-4 rounded"></div>
+        
+        <!-- Create Event Form (Hidden by default) -->
+        <div id="createEventForm" class="hidden bg-white shadow-md rounded px-8 pt-6 pb-8 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Create a New Event</h2>
+                <button id="closeFormBtn" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <form id="eventForm">
+                <!-- Event Title -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+                        Event Title *
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="title" 
+                        type="text" 
+                        placeholder="e.g., Philly Food Festival"
+                        required
+                    >
+                </div>
+
+                <!-- Event Description -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                        Description
+                    </label>
+                    <textarea 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32" 
+                        id="description" 
+                        placeholder="Tell people what your event is about..."
+                    ></textarea>
+                </div>
+
+                <!-- Event Location -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
+                        Location *
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="location" 
+                        type="text" 
+                        placeholder="e.g., City Hall, Philadelphia, PA"
+                        required
+                    >
+                </div>
+
+                <!-- Event Date and Time -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="datetime">
+                        Date and Time *
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="datetime" 
+                        type="datetime-local" 
+                        required
+                    >
+                </div>
+
+                <!-- Event Owner -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="owner">
+                        Your Name *
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="owner" 
+                        type="text" 
+                        placeholder="e.g., midhusi"
+                        required
+                    >
+                    <p class="text-gray-600 text-xs italic mt-1">
+                        Note: This will be replaced with automatic user authentication later
+                    </p>
+                </div>
+
+                <!-- Image URL (optional) -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="image">
+                        Image URL (optional)
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="image" 
+                        type="url" 
+                        placeholder="https://example.com/image.jpg"
+                    >
+                </div>
+
+                <!-- External Link (optional) -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="externalLink">
+                        External Link (optional)
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="externalLink" 
+                        type="url" 
+                        placeholder="https://tickets.example.com"
+                    >
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-4">
+                    <button 
+                        type="submit"
+                        class="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    >
+                        Create Event
+                    </button>
+                    <button 
+                        type="button"
+                        id="cancelBtn"
+                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Events List -->
+        <div id="eventsContainer">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">All Events</h2>
+            
+            <!-- Loading state -->
+            <div id="loadingSpinner" class="text-center py-8">
+                <p class="text-gray-600">Loading events...</p>
+            </div>
+            
+            <!-- Events will be displayed here -->
+            <div id="eventsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Events will be dynamically inserted here -->
+            </div>
+            
+            <!-- No events message -->
+            <div id="noEvents" class="hidden text-center py-8">
+                <p class="text-gray-600">No events found. Be the first to create one!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/events.js"></script>
 </body>
 </html>
