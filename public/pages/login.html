@@ -1,26 +1,165 @@
-<!-- login page -->
-<!DOCTYPE html>
-<html>
+<!-- ...existing code... -->
+<!doctype html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Log in</title>
-	<link rel="stylesheet" type="text/css" href="../dist/output.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Phillyily — Sign in</title>
+  <link href="/dist/output.css" rel="stylesheet" />
+  <style>
+    /* Fallback / small utility styles if Tailwind isn't present */
+    :root {
+      --bg: #f7fafc;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent: #2563eb; /* blue-600 */
+      --accent-dark: #1e40af; /* blue-800 */
+      --glass: rgba(255,255,255,0.8);
+    }
+    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{background:linear-gradient(180deg,#f8fafc 0%, var(--bg) 100%); color:#111;}
+    .site-header{position:relative; padding:18px 24px; max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:center;}
+    .brand{display:flex; align-items:center; gap:10px; position:absolute; left:24px;}
+    .brand img{width:36px;height:36px;}
+    .nav-center{display:flex; gap:22px; font-weight:500; color:#111; font-size:15px;}
+    .nav-center a{color:inherit; text-decoration:none; padding:6px 8px; border-radius:8px;}
+    .nav-center a:hover{background:rgba(0,0,0,0.04);}
+    .user-area{position:absolute; right:24px; display:flex; align-items:center; gap:12px;}
+    .avatar{width:40px;height:40px;border-radius:999px;object-fit:cover;border:2px solid rgba(0,0,0,0.06);}
+    .btn-google{display:inline-flex; align-items:center; gap:10px; background:linear-gradient(90deg,var(--accent),var(--accent-dark)); color:#fff; padding:10px 16px; border-radius:10px; font-weight:600; text-decoration:none; box-shadow: 0 6px 18px rgba(37,99,235,0.18);}
+    .card{background:var(--card); padding:28px; border-radius:14px; box-shadow:0 8px 30px rgba(2,6,23,0.08); display:flex; gap:24px; align-items:center;}
+    .card-left h1{margin:0 0 6px 0; font-size:28px;}
+    .muted{color:var(--muted); font-size:14px;}
+    .small{font-size:13px; color:var(--muted);}
+    .center-wrap{max-width:920px;margin:36px auto;padding:0 20px;}
+    @media (max-width:720px){
+      .card{flex-direction:column; text-align:center;}
+      .site-header{padding:12px;}
+      .brand{left:12px;}
+      .user-area{right:12px;}
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <nav class="flex justify-between items-center p-2">
-        <div>
-            <img src="../images/temp-logo.png" alt="Logo" class="w-8 h-8">
-        </div>
-        <div class="flex space-x-6 text-sm">
-            <a href="../index.html">Home</a>
-            <a href="login.html">Login</a>
-            <a href="search.html">Search</a>
-            <a href="events.html">Events</a>
-            <a href="calendar.html">Calendar</a>
-        </div>
-        <div>
-            <img src="../images/user.png" alt="User" class="w-8 h-8">
-        </div>
+<body>
+  <header class="site-header" role="banner">
+    <div class="brand" aria-hidden="true">
+      <img src="/images/temp-logo.png" alt="Phillyily logo">
+      <strong style="font-size:18px">Phillyily</strong>
+    </div>
+
+    <nav class="nav-center" role="navigation" aria-label="Main">
+      <a href="/index.html">Home</a>
+      <a href="/pages/search.html">Search</a>
+      <a href="/pages/events.html">Events</a>
+      <a href="/pages/calendar.html">Calendar</a>
     </nav>
+
+    <div class="user-area" id="header-user">
+      <!-- populated by JS: when signed out shows Sign in button small -->
+      <a id="header-signin" class="btn-google" href="/auth/google" style="padding:6px 10px;font-size:14px;">
+        <svg width="16" height="16" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#4285F4" d="M533.5 278.4c0-18.1-1.6-35.5-4.6-52.4H272v99.2h146.9c-6.3 33.8-25.2 62.5-53.8 81.6v67.7h86.9c50.8-46.9 80.5-116 80.5-196.1z"/>
+          <path fill="#34A853" d="M272 544.3c73.2 0 134.9-24.1 179.9-65.3l-86.9-67.7c-24.2 16.3-55.2 25.9-93 25.9-71.6 0-132.3-48.3-154.1-113.2H29.8v71.2C74.6 486.9 167.2 544.3 272 544.3z"/>
+          <path fill="#FBBC05" d="M117.9 322.1c-10.8-32.3-10.8-66.9 0-99.2V151.7H29.8c-39.1 77.9-39.1 169.2 0 247.1l88.1-76.7z"/>
+          <path fill="#EA4335" d="M272 107.7c39.8 0 75.6 13.7 103.8 40.6l77.9-77.9C406.9 24.1 345.2 0 272 0 167.2 0 74.6 57.4 29.8 151.7l88.1 71.2C139.7 156 200.4 107.7 272 107.7z"/>
+        </svg>
+        Sign in
+      </a>
+    </div>
+  </header>
+
+  <main class="center-wrap" role="main">
+    <section class="card" aria-labelledby="signin-title">
+      <div class="card-left" style="flex:1;min-width:220px">
+        <h1 id="signin-title">Welcome to Phillyily</h1>
+        <p class="muted">Discover what's happening in Philly this weekend — events, exhibits, festivals, and more.</p>
+        <p class="small" style="margin-top:12px">Sign in with Google to save events, RSVP, and sync your weekend plans across devices.</p>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <a id="signin-btn" class="btn-google" href="/auth/google" aria-label="Sign in with Google">
+          <svg width="20" height="20" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#4285F4" d="M533.5 278.4c0-18.1-1.6-35.5-4.6-52.4H272v99.2h146.9c-6.3 33.8-25.2 62.5-53.8 81.6v67.7h86.9c50.8-46.9 80.5-116 80.5-196.1z"/>
+            <path fill="#34A853" d="M272 544.3c73.2 0 134.9-24.1 179.9-65.3l-86.9-67.7c-24.2 16.3-55.2 25.9-93 25.9-71.6 0-132.3-48.3-154.1-113.2H29.8v71.2C74.6 486.9 167.2 544.3 272 544.3z"/>
+            <path fill="#FBBC05" d="M117.9 322.1c-10.8-32.3-10.8-66.9 0-99.2V151.7H29.8c-39.1 77.9-39.1 169.2 0 247.1l88.1-76.7z"/>
+            <path fill="#EA4335" d="M272 107.7c39.8 0 75.6 13.7 103.8 40.6l77.9-77.9C406.9 24.1 345.2 0 272 0 167.2 0 74.6 57.4 29.8 151.7l88.1 71.2C139.7 156 200.4 107.7 272 107.7z"/>
+          </svg>
+          <span>Sign in with Google</span>
+        </a>
+
+        <div class="small muted" style="text-align:center; max-width:220px;">
+          <a id="profile-link" href="/profile" style="color:var(--accent); text-decoration:none; display:none;">View session /profile</a>
+          <span id="dot" style="display:inline-block;width:6px;height:6px;border-radius:999px;background:#e6e7eb;margin:0 8px;vertical-align:middle;"></span>
+          <a id="logout-link" href="/auth/logout" style="color:var(--accent); text-decoration:none; display:none;">Logout</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // populate header & card with signed-in user if available
+    async function renderAuthState() {
+      try {
+        const res = await fetch('/api/user', { credentials: 'same-origin' });
+        const j = await res.json();
+
+        const headerUser = document.getElementById('header-user');
+        const headerSignin = document.getElementById('header-signin');
+        const signinBtn = document.getElementById('signin-btn');
+        const profileLink = document.getElementById('profile-link');
+        const logoutLink = document.getElementById('logout-link');
+
+        if (j.authenticated && j.user) {
+          // hide sign-in CTA
+          if (headerSignin) headerSignin.style.display = 'none';
+          if (signinBtn) signinBtn.style.display = 'none';
+
+          // header avatar + name
+          const avatar = document.createElement('img');
+          avatar.src = j.user.picture || '/images/user.png';
+          avatar.alt = j.user.name || j.user.email;
+          avatar.className = 'avatar';
+          avatar.loading = 'lazy';
+
+          const name = document.createElement('div');
+          name.textContent = j.user.name || j.user.email;
+          name.style.fontSize = '14px';
+          name.style.fontWeight = '600';
+
+          // clear and append
+          headerUser.innerHTML = '';
+          const wrapper = document.createElement('div');
+          wrapper.style.display = 'flex';
+          wrapper.style.alignItems = 'center';
+          wrapper.style.gap = '10px';
+          wrapper.appendChild(avatar);
+          wrapper.appendChild(name);
+
+          const signout = document.createElement('a');
+          signout.href = '/auth/logout';
+          signout.textContent = 'Sign out';
+          signout.style.marginLeft = '12px';
+          signout.style.color = 'var(--accent)';
+          signout.style.textDecoration = 'none';
+          signout.style.fontSize = '14px';
+
+          headerUser.appendChild(wrapper);
+          headerUser.appendChild(signout);
+
+          // show profile/logout small links in card
+          profileLink.style.display = 'inline';
+          logoutLink.style.display = 'inline';
+        } else {
+          // keep sign-in buttons visible
+          profileLink.style.display = 'none';
+          logoutLink.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('Auth check failed', e);
+      }
+    }
+
+    renderAuthState();
+  </script>
 </body>
 </html>
