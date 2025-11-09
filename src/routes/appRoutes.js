@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-// Routes will be added here
+const getPhillyNextWeek = require('../controllers/controller');
+
+router.get('/events/philly/next-week', getPhillyNextWeek);
 
 module.exports = router;
