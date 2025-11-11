@@ -2,6 +2,7 @@
 
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
+const Event = require('../models/Event');
 
 (async () => {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
@@ -53,7 +54,20 @@ const puppeteer = require('puppeteer');
         }
     }
 
-    console.log(formattedEvents);
+    const mappedEvents = formattedEvents.map((item, index) => {
+        const id = `eventbrite-event-${index}`;
+        const title = item.title;
+        const description = item.description; 
+        const location = item.location;
+        const time = item.date;
+        const owner = 'Eventbrite';
+        const image = null;
+        const externalLink = item.description;
+        
+        return new Event(id, title, description, location, time, owner, image, externalLink);
+    });
+
+    //console.log(mappedEvents);
     await browser.close();
-    return formattedEvents;
+    return mappedEvents;
 })();

@@ -1,5 +1,6 @@
 // base code was borrowed from this tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
 const cheerio = require('cheerio');
+const Event = require('../models/Event');
 
 (async () => {
     const url = 'https://www.visitphilly.com/uwishunu/things-to-do-in-philadelphia-this-week-weekend/';
@@ -97,6 +98,19 @@ const cheerio = require('cheerio');
         }
     }
 
-    console.log(formattedEvents);
-    return formattedEvents;
+    const mappedEvents  = formattedEvents.map((item, index) => {
+        const id = `visitphilly-event-${index}`;
+        const title = item.title;
+        const description = item.description; 
+        const location = item.location;
+        const time = item.date;
+        const owner = 'Visit Philadelphia';
+        const image = null;
+        const externalLink = null; // will need to scrape this ?
+        
+        return new Event(id, title, description, location, time, owner, image, externalLink);
+    });
+
+    //console.log(mappedEvents);
+    return mappedEvents;
 })();
