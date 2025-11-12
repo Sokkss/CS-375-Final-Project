@@ -4,15 +4,15 @@ const Event = require('../models/Event');
 
 // Save a new event to the database
 async function saveEvent(pool, eventData) {
-    const { title, description, location, time, owner, image, externalLink } = eventData;
+    const { title, description, locationDescription, lat, long, time, owner, image, externalLink } = eventData;
     
     const query = `
-        INSERT INTO events (title, description, location, time, owner, image, external_link)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO events (title, description, location_description, lat, long, time, owner, image, external_link)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
     `;
     
-    const values = [title, description, location, time, owner, image, externalLink];
+    const values = [title, description, locationDescription, lat, long, time, owner, image, externalLink];
     
     try {
         const result = await pool.query(query, values);
@@ -23,7 +23,9 @@ async function saveEvent(pool, eventData) {
             row.id,
             row.title,
             row.description,
-            row.location,
+            row.location_description,
+            row.lat,
+            row.long,
             row.time,
             row.owner,
             row.image,
@@ -47,7 +49,9 @@ async function getAllEvents(pool) {
             row.id,
             row.title,
             row.description,
-            row.location,
+            row.location_description,
+            row.lat,
+            row.long,
             row.time,
             row.owner,
             row.image,
@@ -75,7 +79,9 @@ async function getEventById(pool, eventId) {
             row.id,
             row.title,
             row.description,
-            row.location,
+            row.location_description,
+            row.lat,
+            row.long,
             row.time,
             row.owner,
             row.image,
@@ -89,16 +95,16 @@ async function getEventById(pool, eventId) {
 
 // Update an existing event
 async function updateEvent(pool, eventId, eventData) {
-    const { title, description, location, time, image, externalLink } = eventData;
+    const { title, description, locationDescription, lat, long, time, image, externalLink } = eventData;
     
     const query = `
         UPDATE events 
-        SET title = $1, description = $2, location = $3, time = $4, image = $5, external_link = $6
-        WHERE id = $7
+        SET title = $1, description = $2, location_description = $3, lat = $4, long = $5, time = $6, image = $7, external_link = $8
+        WHERE id = $9
         RETURNING *
     `;
     
-    const values = [title, description, location, time, image, externalLink, eventId];
+    const values = [title, description, locationDescription, lat, long, time, image, externalLink, eventId];
     
     try {
         const result = await pool.query(query, values);
@@ -112,7 +118,9 @@ async function updateEvent(pool, eventId, eventData) {
             row.id,
             row.title,
             row.description,
-            row.location,
+            row.location_description,
+            row.lat,
+            row.long,
             row.time,
             row.owner,
             row.image,

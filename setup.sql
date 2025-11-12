@@ -18,7 +18,9 @@ CREATE TABLE events (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
-    location TEXT NOT NULL,
+    location_description TEXT NOT NULL,
+    lat DECIMAL(17, 15),
+    long DECIMAL(17, 15),
     time TIMESTAMP NOT NULL,
     owner TEXT NOT NULL,
     image TEXT,
@@ -41,9 +43,9 @@ INSERT INTO foo (datum) VALUES ('Another sentence');
 INSERT INTO foo (datum) VALUES ('How are you?');
 
 -- Sample events for testing
-INSERT INTO events (title, description, location, time, owner, image, external_link) VALUES 
-('Philly Food Fest', 'A fun food festival in Center City', 'City Hall, Philadelphia, PA', '2025-11-20 12:00:00', 'midhusi', NULL, NULL),
-('Music Concert', 'Live jazz music at Rittenhouse Square', 'Rittenhouse Square, Philadelphia, PA', '2025-11-22 19:00:00', 'sean', NULL, NULL);
+INSERT INTO events (title, description, location_description, lat, long, time, owner, image, external_link) VALUES 
+('Philly Food Fest', 'A fun food festival in Center City', 'City Hall, Philadelphia, PA', 39.9526, -75.1652, '2025-11-20 12:00:00', 'midhusi', NULL, NULL),
+('Music Concert', 'Live jazz music at Rittenhouse Square', 'Rittenhouse Square, Philadelphia, PA', 39.9496, -75.1718, '2025-11-22 19:00:00', 'sean', NULL, NULL);
 
 
 \q
