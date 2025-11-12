@@ -102,13 +102,15 @@ const Event = require('../models/Event');
         const id = `visitphilly-event-${index}`;
         const title = item.title;
         const description = item.description; 
-        const location = item.location;
+        const locationDescription = item.location;
+        const lat = null;
+        const long = null;
         const time = item.date;
         const owner = 'Visit Philadelphia';
         const image = null;
         const externalLink = null; // will need to scrape this ?
         
-        return new Event(id, title, description, location, time, owner, image, externalLink);
+        return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
     });
 
     //console.log(mappedEvents);
