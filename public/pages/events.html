@@ -75,17 +75,45 @@
                     ></textarea>
                 </div>
 
-                <!-- Event Location -->
+                <!-- Event Location Description -->
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
-                        Location *
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="locationDescription">
+                        Location Description *
                     </label>
                     <input 
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                        id="location" 
+                        id="locationDescription" 
                         type="text" 
                         placeholder="e.g., City Hall, Philadelphia, PA"
                         required
+                    >
+                </div>
+
+                <!-- Event Latitude (optional) -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="lat">
+                        Latitude (optional)
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="lat" 
+                        type="number" 
+                        step="any"
+                        placeholder="e.g., 39.9526"
+                    >
+                </div>
+
+                <!-- Event Longitude (optional) -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="long">
+                        Longitude (optional)
+                    </label>
+                    <input 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                        id="long" 
+                        type="number" 
+                        step="any"
+                        placeholder="e.g., -75.1652"
                     >
                 </div>
 
