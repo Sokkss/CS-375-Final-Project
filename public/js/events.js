@@ -35,14 +35,16 @@ eventForm.addEventListener('submit', async (e) => {
     // Get form values
     const title = document.getElementById('title').value.trim();
     const description = document.getElementById('description').value.trim();
-    const location = document.getElementById('location').value.trim();
+    const locationDescription = document.getElementById('locationDescription').value.trim();
+    const lat = document.getElementById('lat').value.trim() || null;
+    const long = document.getElementById('long').value.trim() || null;
     const datetime = document.getElementById('datetime').value;
     const owner = document.getElementById('owner').value.trim();
     const image = document.getElementById('image').value.trim() || null;
     const externalLink = document.getElementById('externalLink').value.trim() || null;
     
     // Validate required fields
-    if (!title || !location || !datetime || !owner) {
+    if (!title || !locationDescription || !datetime || !owner) {
         showMessage('Please fill in all required fields', 'error');
         return;
     }
@@ -54,7 +56,9 @@ eventForm.addEventListener('submit', async (e) => {
     const eventData = {
         title,
         description,
-        location,
+        locationDescription,
+        lat: lat ? parseFloat(lat) : null,
+        long: long ? parseFloat(long) : null,
         time,
         owner,
         image,
@@ -148,7 +152,8 @@ function createEventCard(event) {
           '<div class="w-full h-48 bg-gradient-to-r from-blue-400 to-purple-500"></div>'}
         <div class="p-4">
             <h3 class="font-bold text-xl mb-2 text-gray-800">${escapeHtml(event.title)}</h3>
-            <p class="text-gray-600 text-sm mb-2">📍 ${escapeHtml(event.location)}</p>
+            <p class="text-gray-600 text-sm mb-2">📍 ${escapeHtml(event.locationDescription || event.location || 'Location not specified')}</p>
+            ${event.lat && event.lng ? `<p class="text-gray-500 text-xs mb-2">📍 Coordinates: ${event.lat}, ${event.lng}</p>` : ''}
             <p class="text-gray-600 text-sm mb-2">📅 ${formattedDate}</p>
             <p class="text-gray-600 text-sm mb-2">👤 Created by ${escapeHtml(event.owner)}</p>
             ${event.description ? `<p class="text-gray-700 text-sm mt-3">${escapeHtml(event.description)}</p>` : ''}

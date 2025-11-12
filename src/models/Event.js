@@ -1,11 +1,13 @@
 class Event {
-  constructor(id, title, description, location, time, owner, image = null, externalLink = null) {
+  constructor(id, title, description, locationDescription, lat, long, time, owner, image = null, externalLink = null) {
     this.id = id;             
     this.title = title;              
     this.description = description;  
-    this.location = location;        
+    this.locationDescription = locationDescription;
+    this.lat = lat;
+    this.long = long;
     this.time = time;                 
-    this.owner = owner;              
+    this.owner = owner;               
     this.attendees = [];              
     this.image = image;               
     this.externalLink = externalLink; 
@@ -30,7 +32,7 @@ class Event {
 
   // Return a simple summary of the event
   summary() {
-    return `${this.title} at ${this.location} on ${this.time}`;
+    return `${this.title} at ${this.locationDescription} on ${this.time}`;
   }
 }
 

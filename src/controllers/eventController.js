@@ -5,12 +5,12 @@ const eventService = require('../services/eventService');
 // Create a new event
 async function createEvent(req, res, pool) {
     try {
-        const { title, description, location, time, owner, image, externalLink } = req.body;
+        const { title, description, locationDescription, lat, long, time, owner, image, externalLink } = req.body;
         
         // Validate required fields
-        if (!title || !location || !time || !owner) {
+        if (!title || !locationDescription || !time || !owner) {
             return res.status(400).json({ 
-                error: 'Missing required fields: title, location, time, and owner are required' 
+                error: 'Missing required fields: title, locationDescription, time, and owner are required' 
             });
         }
         
@@ -18,7 +18,9 @@ async function createEvent(req, res, pool) {
         const eventData = {
             title,
             description: description || '',
-            location,
+            locationDescription,
+            lat: lat || null,
+            long: long || null,
             time,
             owner,
             image: image || null,
@@ -74,19 +76,21 @@ async function getEventById(req, res, pool) {
 async function updateEvent(req, res, pool) {
     try {
         const eventId = req.params.id;
-        const { title, description, location, time, image, externalLink } = req.body;
+        const { title, description, locationDescription, lat, long, time, image, externalLink } = req.body;
         
         // Validate required fields
-        if (!title || !location || !time) {
+        if (!title || !locationDescription || !time) {
             return res.status(400).json({ 
-                error: 'Missing required fields: title, location, and time are required' 
+                error: 'Missing required fields: title, locationDescription, and time are required' 
             });
         }
         
         const eventData = {
             title,
             description: description || '',
-            location,
+            locationDescription,
+            lat: lat || null,
+            long: long || null,
             time,
             image: image || null,
             externalLink: externalLink || null
