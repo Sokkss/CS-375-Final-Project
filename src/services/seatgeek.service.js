@@ -1,4 +1,5 @@
 const axios = require('axios');
+const Event = require('../models/Event');
 
 async function fetchPhillyEventsNextWeek() {
     const startDateTime = new Date();
@@ -7,8 +8,9 @@ async function fetchPhillyEventsNextWeek() {
 
     const params = {
         client_id: process.env.SEATGEEK_CLIENT_ID,
-        client_secret: process.env.SEATGEEK_CLIENT_SECRET,
-        geoip: '39.9526,-75.1652',  // this is roughly city hall coords
+        //client_secret: process.env.SEATGEEK_CLIENT_SECRET,
+        lat: 39.9526,
+        lon: -75.1652,  // this is roughly city hall coords
         range: '25mi',
         'datetime_utc.gte': startDateTime,
         'datetime_utc.lte': endDateTime,
@@ -17,7 +19,21 @@ async function fetchPhillyEventsNextWeek() {
     };
 
     const res = await axios.get('https://api.seatgeek.com/2/events', { params });
-    return res.data?.events ?? [];
+
+    const mappedEvents = res.data.events.map((item, index) => {
+        const id = `seatgeek-event-${index}`;
+        const title = item.title;
+        const description = item.url;
+        const location = item.venue.location;
+        const time = item.datetime_utc;
+        const owner = 'Seatgeek';
+        const image = null;
+        const externalLink = item.url;
+
+        return new Event(id, title, description, location, time, owner, image, externalLink);
+    });
+
+    return mappedEvents;
 }
 
 module.exports = fetchPhillyEventsNextWeek;
