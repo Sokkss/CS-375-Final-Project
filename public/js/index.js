@@ -11,11 +11,17 @@ let map;
 let markers = [];
 let currentInfoWindow = null;
 
-function initMap() {
+export function initMap(mapContainerId) {
+    const mapElement = document.getElementById(mapContainerId);
+    if (!mapElement) {
+        console.error(`Map container with id "${mapContainerId}" not found`);
+        return;
+    }
+    
     const position = { lat: 39.9526, lng: -75.1652 };
     
     google.maps.importLibrary("maps").then(({ Map }) => {
-        map = new Map(document.getElementById("map"), {
+        map = new Map(mapElement, {
             zoom: 13,
             center: position,
             mapId: "Main-Events-Map"
@@ -108,4 +114,8 @@ function addMarkers(events) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initMap);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initMap('map'));
+} else {
+    initMap('map');
+}
