@@ -153,7 +153,7 @@ function createEventCard(event) {
         <div class="p-4">
             <h3 class="font-bold text-xl mb-2 text-gray-800">${escapeHtml(event.title)}</h3>
             <p class="text-gray-600 text-sm mb-2">📍 ${escapeHtml(event.locationDescription || event.location || 'Location not specified')}</p>
-            ${event.lat && event.long ? `<p class="text-gray-500 text-xs mb-2">📍 Coordinates: ${parseFloat(event.lat).toFixed(5)}, ${parseFloat(event.long).toFixed(5)}</p>` : ''}
+            ${event.lat && event.long ? `<p class="text-gray-500 text-xs mb-2">📍 Coordinates: ${parseFloat(event.lat).toFixed(6)}, ${parseFloat(event.long).toFixed(6)}</p>` : ''}
             <p class="text-gray-600 text-sm mb-2">📅 ${formattedDate}</p>
             <p class="text-gray-600 text-sm mb-2">👤 Created by ${escapeHtml(event.owner)}</p>
             ${event.description ? `<p class="text-gray-700 text-sm mt-3">${escapeHtml(event.description)}</p>` : ''}
