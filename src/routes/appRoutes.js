@@ -3,8 +3,6 @@ const express = require('express');
 
 const getPhillyNextWeek = require('../controllers/controller');
 
-
-
 // citation: largely from Professor Long's sample code
 function createRoutes(pool) {
     const router = express.Router();
@@ -45,6 +43,10 @@ function createRoutes(pool) {
         })
     });
 
+    router.get("/", (req, res) => {
+        res.sendFile("./index.html", {root: "public"});
+    });
+    
   return router;
 }
 

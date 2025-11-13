@@ -3,9 +3,10 @@
 -- use this to clear any existing tables to reinsert fresh data
 -- you'll need to add a DROP TABLE for every table you add
 -- we don't drop the database because that causes errors with fly
-DROP TABLE IF EXISTS foo;
-DROP TABLE IF EXISTS events;
+-- Drop tables in order (drop dependent tables first)
 DROP TABLE IF EXISTS rsvps;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS foo;
 
 -- create whatever tables you need here
 CREATE TABLE foo (
