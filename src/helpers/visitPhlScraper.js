@@ -1,12 +1,14 @@
 // base code was borrowed from this tutorial: https://medium.com/@joerosborne/intro-to-web-scraping-build-your-first-scraper-in-5-minutes-1c36b5c4b110
 const cheerio = require('cheerio');
 const Event = require('../models/Event');
+const axios = require('axios');
+const { getLatLong } = require('./geoEncoder');
 
 (async () => {
     const url = 'https://www.visitphilly.com/uwishunu/things-to-do-in-philadelphia-this-week-weekend/';
-    const response = await fetch(url);
+    const response = await axios.get(url);
 
-    const $ = cheerio.load(await response.text());
+    const $ = cheerio.load(response.data);
 
     const ARTICLE_SELECTOR = '.vp-article-section__content';
     const ITEM_SELECTOR = 'ul';
@@ -90,8 +92,12 @@ const Event = require('../models/Event');
             let title = item.title;
             let description = item.description;
             let location = locations[i];
+            const coords = await getLatLong(location);
+            let lat = coords.lat;
+            let lng = coords.lng;
 
-            let event = {title, date, location, description};
+            let event = {title, date, location, lat, lng, description};
+
             formattedEvents.push(event);
 
             i++;
@@ -103,12 +109,12 @@ const Event = require('../models/Event');
         const title = item.title;
         const description = item.description; 
         const locationDescription = item.location;
-        const lat = null;
-        const long = null;
+        const lat = item.lat;
+        const long = item.lng;
         const time = item.date;
         const owner = 'Visit Philadelphia';
         const image = null;
-        const externalLink = null; // will need to scrape this ?
+        const externalLink = null;
         
         return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
     });
