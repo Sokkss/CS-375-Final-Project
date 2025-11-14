@@ -44,10 +44,13 @@ function createRoutes(pool) {
         })
     });
 
+<<<<<<< HEAD
     router.get("/", (req, res) => {
         res.sendFile("./index.html", {root: "public"});
     });
     
+=======
+>>>>>>> parent of 13e0f88 (not currently working but started on map with api setup)
   return router;
 }
 
