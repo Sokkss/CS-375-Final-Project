@@ -3,6 +3,7 @@
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
 const Event = require('../models/Event');
+const { getLatLong } = require('./geoEncoder');
 
 (async () => {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
@@ -12,7 +13,7 @@ const Event = require('../models/Event');
 
     let formattedEvents = [];
 
-    for (let currentPage = 1; currentPage <= 50; currentPage++) {
+    for (let currentPage = 1; currentPage <= 5; currentPage++) {
         const url = `${BASE_URL}?page=${currentPage}`;
         await page.goto(url, { timeout: 60000 });
 
@@ -21,7 +22,7 @@ const Event = require('../models/Event');
 
         const html = await page.content();
         const $ = cheerio.load(html);
-    
+
         const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
             const $eventSection = $(event);
             const title = $eventSection.find('a').attr('aria-label').trim().replace('View ', '');
@@ -47,13 +48,14 @@ const Event = require('../models/Event');
             let title = section.title;
             let date = section.date;
             let location = section.location;
-            let description = section.description;
-
             if (title.length === 0 || date.length === 0 || location.length === 0) {
                 continue;
             }
-
-            let event = {title, date, location, description};
+            const coords = await getLatLong(location);
+            let lat = coords.lat;
+            let lng = coords.lng;
+            let description = section.description;
+            let event = {title, date, location, lat, lng, description};
             formattedEvents.push(event);
         }
     }
@@ -63,8 +65,8 @@ const Event = require('../models/Event');
         const title = item.title;
         const description = item.description; 
         const locationDescription = item.location;
-        const lat = null;
-        const long = null;
+        const lat = item.lat;
+        const long = item.lng;
         const time = item.date;
         const owner = 'Eventbrite';
         const image = null;
@@ -73,7 +75,7 @@ const Event = require('../models/Event');
         return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
     });
 
-    //console.log(mappedEvents);
+    console.log(mappedEvents);
     await browser.close();
     return mappedEvents;
 })();
