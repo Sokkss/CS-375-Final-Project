@@ -189,6 +189,63 @@ async function getEventAttendees(pool, eventId) {
     }
 }
 
+function searchEvents(pool, searchFilters) {
+    let query = 'SELECT * FROM events WHERE';
+    
+    if (searchFilters.searchText && typeof searchFilters.searchText === 'string' && searchFilters.searchText.trim()) {
+        query += ` title ILIKE '%${searchFilters.searchText.trim()}%'`;
+    }
+    if (searchFilters.startDate && typeof searchFilters.startDate === 'string' && searchFilters.startDate.trim()) {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` time >= '${searchFilters.startDate.trim()}'`;
+    }
+    if (searchFilters.endDate && typeof searchFilters.endDate === 'string' && searchFilters.endDate.trim()) {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` time <= '${searchFilters.endDate.trim()}'`;
+    }
+    if (searchFilters.location && typeof searchFilters.location === 'string' && searchFilters.location.trim()) {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` location_description ILIKE '%${searchFilters.location.trim()}%'`;
+    }
+    if (searchFilters.owner && typeof searchFilters.owner === 'string' && searchFilters.owner.trim()) {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` owner ILIKE '%${searchFilters.owner.trim()}%'`;
+    }
+    if (searchFilters.hasLocationData === 'true') {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` lat IS NOT NULL AND long IS NOT NULL`;
+    } else if (searchFilters.hasLocationData === 'false') {
+        if (query !== 'SELECT * FROM events WHERE') query += ' AND';
+        query += ` (lat IS NULL OR long IS NULL)`;
+    }
+    
+    if (query === 'SELECT * FROM events WHERE') {
+        query = 'SELECT * FROM events';
+    }
+    query += ' ORDER BY time ASC';
+    
+    return pool.query(query)
+        .then(result => {
+            return result.rows.map(row =>
+                new Event(
+                    row.id,
+                    row.title,
+                    row.description,
+                    row.location_description,
+                    row.lat,
+                    row.long,
+                    row.time,
+                    row.owner,
+                    row.image,
+                    row.external_link
+                )
+            );
+        })
+        .catch(error => {
+            throw error;
+        });
+}
+
 module.exports = {
     saveEvent,
     getAllEvents,
@@ -197,5 +254,6 @@ module.exports = {
     deleteEvent,
     addRSVP,
     removeRSVP,
-    getEventAttendees
+    getEventAttendees,
+    searchEvents
 };

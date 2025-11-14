@@ -12,6 +12,7 @@ function createRoutes(pool) {
     // Event CRUD routes
     router.post('/api/events', (req, res) => eventController.createEvent(req, res, pool));
     router.get('/api/events', (req, res) => eventController.getAllEvents(req, res, pool));
+    router.get('/api/events/search', (req, res) => eventController.searchEvents(req, res, pool));
     router.get('/api/events/:id', (req, res) => eventController.getEventById(req, res, pool));
     router.put('/api/events/:id', (req, res) => eventController.updateEvent(req, res, pool));
     router.delete('/api/events/:id', (req, res) => eventController.deleteEvent(req, res, pool));
