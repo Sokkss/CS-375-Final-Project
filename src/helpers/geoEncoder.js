@@ -10,11 +10,11 @@ async function getLatLong(address) {
     const data = res.data;
 
     if (!data.results || data.results.length === 0) {
-        return { lat: null, lng: null };
+        return { lat: null, long: null };
     }
 
     const location = data.results[0].geometry.location; 
-    return { lat: location.lat, lng: location.lng };
+    return { lat: location.lat, long: location.lng };
 }
 
 module.exports = { getLatLong };

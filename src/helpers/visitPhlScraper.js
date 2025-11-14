@@ -94,9 +94,9 @@ const { getLatLong } = require('./geoEncoder');
             let location = locations[i];
             const coords = await getLatLong(location);
             let lat = coords.lat;
-            let lng = coords.lng;
+            let long = coords.long;
 
-            let event = {title, date, location, lat, lng, description};
+            let event = {title, date, location, lat, long, description};
 
             formattedEvents.push(event);
 
@@ -110,7 +110,7 @@ const { getLatLong } = require('./geoEncoder');
         const description = item.description; 
         const locationDescription = item.location;
         const lat = item.lat;
-        const long = item.lng;
+        const long = item.long;
         const time = item.date;
         const owner = 'Visit Philadelphia';
         const image = null;
