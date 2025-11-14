@@ -75,7 +75,7 @@ const { getLatLong } = require('./geoEncoder');
         return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
     });
 
-    console.log(mappedEvents);
+    //console.log(mappedEvents);
     await browser.close();
     return mappedEvents;
 })();
