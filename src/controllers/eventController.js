@@ -1,5 +1,6 @@
 const eventService = require('../services/eventService');
 
+
 // Event Controller - handles HTTP requests for events
 
 // Create a new event
@@ -191,6 +192,39 @@ async function getEventAttendees(req, res, pool) {
     }
 }
 
+function searchEvents(req, res, pool) {
+    let filters = {
+        searchText: req.query.searchText || '',
+        startDate: req.query.startDate || '',
+        endDate: req.query.endDate || '',
+        location: req.query.location || '',
+        owner: req.query.owner || '',
+        hasLocationData: req.query.hasLocationData || ''
+    };
+
+    if (!filters.searchText && !filters.startDate && !filters.endDate && 
+        !filters.location && !filters.owner && !filters.hasLocationData) {
+        res.status(400);
+        return res.json({ message: 'At least one search criteria is required' });
+    }
+
+    eventService.searchEvents(pool, filters)
+        .then(eventRecords => {
+            if (eventRecords.length === 0) {
+                res.status(404);
+                return res.json({ message: "No events found for that criteria." });
+            }
+            
+            res.status(200);
+            return res.json({ events: eventRecords });
+        })
+        .catch(error => {
+            res.status(500);
+            return res.json({ message: 'Internal error fetching the events for your criteria' });
+        });
+}
+
+
 module.exports = {
     createEvent,
     getAllEvents,
@@ -199,5 +233,6 @@ module.exports = {
     deleteEvent,
     rsvpToEvent,
     cancelRSVP,
-    getEventAttendees
+    getEventAttendees,
+    searchEvents
 };

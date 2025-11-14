@@ -11,16 +11,20 @@ let map;
 let markers = [];
 let currentInfoWindow = null;
 
-export function initMap(mapContainerId) {
+export function initMap(mapContainerId, loadAllEvents = true) {
     const mapElement = document.getElementById(mapContainerId);
     if (!mapElement) {
         console.error(`Map container with id "${mapContainerId}" not found`);
-        return;
+        return Promise.reject(new Error('Map container not found'));
+    }
+    
+    if (map && window.PinElement) {
+        return Promise.resolve();
     }
     
     const position = { lat: 39.9526, lng: -75.1652 };
     
-    google.maps.importLibrary("maps").then(({ Map }) => {
+    return google.maps.importLibrary("maps").then(({ Map }) => {
         map = new Map(mapElement, {
             zoom: 13,
             center: position,
@@ -39,9 +43,12 @@ export function initMap(mapContainerId) {
             }
         });
         
-        loadEvents();
+        if (loadAllEvents) {
+            loadEvents();
+        }
     }).catch(error => {
         console.error('Error loading libraries:', error);
+        throw error;
     });
 }
 
@@ -65,34 +72,49 @@ function loadEvents() {
         });
 }
 
+function clearMarkers() {
+    for (let marker of markers) {
+        marker.map = null;
+    }
+    markers = [];
+    if (currentInfoWindow) {
+        currentInfoWindow.close();
+        currentInfoWindow = null;
+    }
+}
+
 function addMarkers(events) {
     if (!window.PinElement) {
         console.error('PinElement not available');
         return;
     }
     
+    if (!map) {
+        console.error('Map not initialized');
+        return;
+    }
+    
     for (let event of events) {
         if (event.lat && event.long) {
-            const position = { 
+            let position = { 
                 lat: parseFloat(event.lat), 
                 lng: parseFloat(event.long) 
             };
             
-            // custom pins for the markers
-            const pinElement = new window.PinElement({
+            let pinElement = new window.PinElement({
                 background: "#89F336", 
                 borderColor: "#076b3b",
                 glyphColor: "#ffffff"
             });
             
-            const marker = new google.maps.marker.AdvancedMarkerElement({
-                map,
+            let marker = new google.maps.marker.AdvancedMarkerElement({
+                map: map,
                 position: position,
                 title: event.title || 'Event in Philly',
                 content: pinElement.element
             });
             
-            const infoWindow = new google.maps.InfoWindow({
+            let infoWindow = new google.maps.InfoWindow({
                 content: '<div><strong>' + (event.title || 'Event in Philly') + '</strong><br>' + 
                         (event.locationDescription || 'Location not specified') + '</div>',
                 disableAutoPan: false
@@ -112,6 +134,14 @@ function addMarkers(events) {
             markers.push(marker);
         }
     }
+}
+
+export function updateMapMarkers(events) {
+    if (!map || !window.PinElement) {
+        return;
+    }
+    clearMarkers();
+    addMarkers(events);
 }
 
 if (document.readyState === 'loading') {
