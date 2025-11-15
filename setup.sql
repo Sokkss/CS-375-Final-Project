@@ -33,6 +33,7 @@ CREATE TABLE events (
 CREATE TABLE rsvps (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
+    user_email TEXT,
     event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE(user_id, event_id)

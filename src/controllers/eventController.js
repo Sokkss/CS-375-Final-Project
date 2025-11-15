@@ -85,6 +85,28 @@ async function updateEvent(req, res, pool) {
                 error: 'Missing required fields: title, locationDescription, and time are required' 
             });
         }
+
+        const { owner } = req.body; // Owner making the request
+        
+        if (!owner) {
+            return res.status(400).json({ 
+                error: 'Owner identification required to update event' 
+            });
+        }
+        
+        // Get the existing event to check ownership
+        const existingEvent = await eventService.getEventById(pool, eventId);
+        
+        if (!existingEvent) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        
+        // Check if the requester is the owner
+        if (existingEvent.owner !== owner) {
+            return res.status(403).json({ 
+                error: 'Forbidden: Only the event owner can update this event' 
+            });
+        }
         
         const eventData = {
             title,
@@ -117,6 +139,28 @@ async function updateEvent(req, res, pool) {
 async function deleteEvent(req, res, pool) {
     try {
         const eventId = req.params.id;
+        const { owner } = req.body; // Owner making the request
+        
+        if (!owner) {
+            return res.status(400).json({ 
+                error: 'Owner identification required to delete event' 
+            });
+        }
+        
+        // Get the existing event to check ownership
+        const existingEvent = await eventService.getEventById(pool, eventId);
+        
+        if (!existingEvent) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+        
+        // Check if the requester is the owner
+        if (existingEvent.owner !== owner) {
+            return res.status(403).json({ 
+                error: 'Forbidden: Only the event owner can delete this event' 
+            });
+        }
+        
         const deleted = await eventService.deleteEvent(pool, eventId);
         
         if (!deleted) {
@@ -134,13 +178,13 @@ async function deleteEvent(req, res, pool) {
 async function rsvpToEvent(req, res, pool) {
     try {
         const eventId = req.params.id;
-        const { userId } = req.body;
+        const { userId, userEmail } = req.body;
         
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
         
-        const added = await eventService.addRSVP(pool, userId, eventId);
+        const added = await eventService.addRSVP(pool, userId, userEmail || null, eventId);
         
         if (!added) {
             return res.status(400).json({ error: 'Already RSVP\'d to this event' });

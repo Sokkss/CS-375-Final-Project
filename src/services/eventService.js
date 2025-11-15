@@ -146,16 +146,16 @@ async function deleteEvent(pool, eventId) {
 }
 
 // Add RSVP for a user to an event
-async function addRSVP(pool, userId, eventId) {
+async function addRSVP(pool, userId, userEmail, eventId) {
     const query = `
-        INSERT INTO rsvps (user_id, event_id)
-        VALUES ($1, $2)
+        INSERT INTO rsvps (user_id, user_email, event_id)
+        VALUES ($1, $2, $3)
         ON CONFLICT (user_id, event_id) DO NOTHING
         RETURNING *
     `;
     
     try {
-        const result = await pool.query(query, [userId, eventId]);
+        const result = await pool.query(query, [userId, userEmail, eventId]);
         return result.rows.length > 0;
     } catch (error) {
         console.error('Error adding RSVP:', error);
@@ -178,11 +178,14 @@ async function removeRSVP(pool, userId, eventId) {
 
 // Get all attendees for an event
 async function getEventAttendees(pool, eventId) {
-    const query = 'SELECT user_id FROM rsvps WHERE event_id = $1';
+    const query = 'SELECT user_id, user_email FROM rsvps WHERE event_id = $1';
     
     try {
         const result = await pool.query(query, [eventId]);
-        return result.rows.map(row => row.user_id);
+        return result.rows.map(row => ({
+            name: row.user_id,
+            email: row.user_email
+        }));
     } catch (error) {
         console.error('Error getting event attendees:', error);
         throw error;
