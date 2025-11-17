@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
-    "setup": "fly postgres connect -a phly-pg < setup.sql",
+    "setup": "fly postgres connect -a phly-pg-v2 < setup.sql",
     "start:local": "env-cmd node server.js",
     "setup:local": "env-cmd psql -d postgres -c \"create database cs_375_final_project\" -f setup.sql",
     "dev": "npx tailwindcss -i ./public/style.css -o ./public/dist/output.css --watch",
