@@ -22,6 +22,14 @@ function createRoutes(pool) {
     router.delete('/api/events/:id/rsvp', (req, res) => eventController.cancelRSVP(req, res, pool));
     router.get('/api/events/:id/attendees', (req, res) => eventController.getEventAttendees(req, res, pool));
 
+    // Google OAuth
+    router.use(() => eventController.getSession());
+    router.get('/auth/google', (req, res) => eventController.getGoogleAuth(req, res));
+    router.get('/auth/google/callback', (req, res) => eventController.getGoogleAuthCallback(req, res));
+    router.get('/auth/logout', (req, res) => eventController.getLogout(req, res));
+    router.get('/api/user', (req, res) => eventController.getUser(req, res));
+    router.get('/profile', (req, res) => eventController.getProfile(req, res));
+
     router.post("/datum", (req, res) => {
         let { datum } = req.body;
         if (datum === undefined) {

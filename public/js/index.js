@@ -10,6 +10,7 @@
 let map;
 let markers = [];
 let currentInfoWindow = null;
+let button = document.getElementById('login');
 
 export function initMap(mapContainerId, loadAllEvents = true) {
     const mapElement = document.getElementById(mapContainerId);
@@ -148,4 +149,10 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => initMap('map'));
 } else {
     initMap('map');
+}
+
+export function login() {
+    button.addListener('click', function() {
+        
+    });
 }
