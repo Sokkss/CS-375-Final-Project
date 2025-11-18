@@ -56,7 +56,6 @@ async function getGoogleAuthCallback(req, res) {
             name: profile.name,
             picture: profile.picture
         },
-
         tokens: {
             refresh_token: tokens.refresh_token || null,
             access_token: tokens.access_token || null,
