@@ -102,9 +102,9 @@ function addMarkers(events) {
             };
             
             let pinElement = new window.PinElement({
-                background: "#89F336", 
-                borderColor: "#076b3b",
-                glyphColor: "#ffffff"
+                background: "#0b452f",
+                borderColor: "#001400",
+                glyphColor: "#f6eedc"
             });
             
             let marker = new google.maps.marker.AdvancedMarkerElement({
