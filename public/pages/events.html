@@ -19,10 +19,21 @@
         <a href="events.html">Events</a>
         <a href="calendar.html">Calendar</a>
     </div>
-    <div>
-        <img alt="User" class="w-8 h-8" src="../images/abstract-user-flat-1.svg">
-    </div>
 </nav>
+<div class="relative">
+    <img id="userIconButton" src="images/abstract-user-flat-1.svg"
+        alt="User" class="w-8 h-8">
+
+    <div id="userDropdown"
+        class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg">
+        <button id="login" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+            Login
+        </button>
+        <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+            Logout
+        </button>
+    </div>
+</div>
 
 <!-- Main Content -->
 <div class="container mx-auto px-4 py-8 pt-20 max-w-6xl">
@@ -215,5 +226,6 @@
 
 <!-- JavaScript -->
 <script src="../js/events.js"></script>
+<script src="js/login.js" type="module"></script>
 </body>
 </html>
