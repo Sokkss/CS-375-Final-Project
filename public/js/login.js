@@ -37,7 +37,7 @@ export function login() {
             "googleLogin",
             "width=500,height=600"
         );
-
+ 
         function handleMessage(event) {
             if (event.origin !== window.location.origin) return;
 
