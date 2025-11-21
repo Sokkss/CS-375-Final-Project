@@ -10,7 +10,6 @@
 let map;
 let markers = [];
 let currentInfoWindow = null;
-let button = document.getElementById('login');
 
 export function initMap(mapContainerId, loadAllEvents = true) {
     const mapElement = document.getElementById(mapContainerId);
