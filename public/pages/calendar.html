@@ -6,7 +6,7 @@
 	<title>Calendar</title>
 	<link rel="stylesheet" type="text/css" href="../dist/output.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen pt-16">
     <nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-2 bg-white shadow-sm">
         <div>
             <img src="../images/temp-logo.png" alt="Logo" class="w-8 h-8">
@@ -17,9 +17,26 @@
             <a href="events.html">Events</a>
             <a href="calendar.html">Calendar</a>
         </div>
-        <div>
-            <img src="../images/abstract-user-flat-1.svg" alt="User" class="w-8 h-8">
+        <div class="relative">
+            <img id="userMenuButton" src="../images/abstract-user-flat-1.svg"
+                alt="User" class="w-8 h-8">
+
+            <div id="userDropdown"
+                class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg">
+                <button id="login" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                    Login
+                </button>
+                <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
+                    Logout
+                </button>
+            </div>
         </div>
     </nav>
+    <div id="calendar"
+        class="bg-white rounded shadow p-4 
+                min-h-[calc(100vh-4rem)] overflow-auto 
+                w-full max-w-4xl mx-auto">
+        <script type="module" src="../js/calendar.js"></script>   
+    </div>
 </body>
 </html>
