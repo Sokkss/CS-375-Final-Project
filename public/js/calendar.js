@@ -4,7 +4,6 @@ export async function initCalendar(calendarContainerId) {
 
     try {
         const userResponse = await fetch('/api/user', { cache: 'no-store' });
-        if (!userResponse.ok) throw new Error('Failed to check user');
 
         const userData = await userResponse.json();
         if (!userData.authenticated) {
@@ -29,7 +28,7 @@ export async function initCalendar(calendarContainerId) {
 
         const errorMessage = document.createElement('p');
         errorMessage.textContent = 'You must be logged in to view the calendar.';
-        errorMessage.classList.add('text-red-500', 'font-semibold', 'text-center', 'mt-4');
+        errorMessage.classList.add('font-semibold', 'text-center', 'mt-4');
 
         calendar.appendChild(errorMessage);
     }

@@ -8,8 +8,6 @@ async function updateUserIcon() {
 
     try {
         const response = await fetch('/api/user', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to get user');
-
         const data = await response.json();
 
         if (data.authenticated && data.user?.picture) {
@@ -25,7 +23,6 @@ async function updateUserIcon() {
         localStorage.removeItem('profileImage');
     }
 }
-
 
 export function login() {
     if (!loginButton || !userIconButton) return;
@@ -48,7 +45,6 @@ export function login() {
             }
 
             if (event.data.loggedIn) {
-                window.location.href = event.data.redirectUrl || '/';
                 window.removeEventListener('message', handleMessage);
             }
         }
