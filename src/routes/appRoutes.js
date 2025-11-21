@@ -2,6 +2,7 @@ const eventController = require('../controllers/eventController');
 const express = require('express');
 
 const getPhillyNextWeek = require('../controllers/controller');
+const googleAuthController = require('../controllers/googleAuthController');
 
 // citation: largely from Professor Long's sample code
 function createRoutes(pool) {
@@ -21,6 +22,34 @@ function createRoutes(pool) {
     router.post('/api/events/:id/rsvp', (req, res) => eventController.rsvpToEvent(req, res, pool));
     router.delete('/api/events/:id/rsvp', (req, res) => eventController.cancelRSVP(req, res, pool));
     router.get('/api/events/:id/attendees', (req, res) => eventController.getEventAttendees(req, res, pool));
+
+    // Google OAuth + calendar
+    router.use(googleAuthController.getSession());
+    router.get('/auth/google', (req, res) => googleAuthController.getGoogleAuth(req, res));
+    router.get('/auth/google/callback', (req, res) => googleAuthController.getGoogleAuthCallback(req, res));
+    router.get('/auth/logout', (req, res) => googleAuthController.getLogout(req, res));
+    router.get('/api/user', (req, res) => googleAuthController.getUser(req, res));
+    router.get('/profile', (req, res) => googleAuthController.getProfile(req, res));
+    router.get('/api/calendar/embed', googleAuthController.getCalendar);
+    router.get("/auth/close", (req, res) => {
+        const picture = req.session?.user?.profile?.picture || null;
+
+        res.send(`
+            <script>
+                window.opener.postMessage(
+                    {
+                        loggedIn: true,
+                        redirectUrl: "/",
+                        user: { picture: "${picture}" }
+                    },
+                    window.location.origin
+                );
+                window.close();
+            </script>
+        `);
+    });
+
+
 
     router.post("/datum", (req, res) => {
         let { datum } = req.body;

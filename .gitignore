@@ -2,3 +2,5 @@ node_modules/
 .idea/
 .env
 public/dist/
+.DS_Store
+package-lock.json
