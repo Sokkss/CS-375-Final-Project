@@ -14,25 +14,25 @@ const SCOPES = [
     'https://www.googleapis.com/auth/calendar'
 ];
 
-async function getSession() { 
-    session({
+function getSession() { 
+    return session({
         name: 'philly.sid',
         secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
         resave: false,
         saveUninitialized: false,
         cookie: {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', // requires HTTPS in prod // can remove ??
+          secure: process.env.NODE_ENV === 'production', // can remove ??
           sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
+          maxAge: 24 * 60 * 60 * 1000
         }
     });
 }
 
 async function getGoogleAuth(req, res) {
     const url = oauth2Client.generateAuthUrl({
-      access_type: 'offline', // request refresh token for long-lived access
-      prompt: 'consent',      // force consent to ensure refresh_token on first auth
+      access_type: 'offline',
+      prompt: 'consent', 
       scope: SCOPES
     });
     res.redirect(url);
@@ -44,15 +44,11 @@ async function getGoogleAuthCallback(req, res) {
 
     try {
         const { tokens } = await oauth2Client.getToken(code);
-        // Keep credentials on oauth2Client for any immediate server-side calls
         oauth2Client.setCredentials(tokens);
 
-        // Fetch basic profile
         const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
         const { data: profile } = await oauth2.userinfo.get();
 
-        // Persist minimal profile in session and store tokens server-side (dev: session)
-        // Production: persist refresh_token securely to DB and do not expose tokens via APIs.
         req.session.user = {
         profile: {
             id: profile.id,
@@ -60,7 +56,7 @@ async function getGoogleAuthCallback(req, res) {
             name: profile.name,
             picture: profile.picture
         },
-        // store tokens in session for dev convenience; remove/secure in prod
+
         tokens: {
             refresh_token: tokens.refresh_token || null,
             access_token: tokens.access_token || null,
@@ -69,17 +65,38 @@ async function getGoogleAuthCallback(req, res) {
         }
         };
 
-        return res.redirect('/pages/index.html'); // redirect to app entry point
+        return res.redirect("/auth/close");
+
     } catch (err) {
         console.error('OAuth callback error:', err);
         return res.status(500).send('Authentication error');
     }
 }
 
+async function getCalendar(req, res) {
+    if (!req.session?.user?.tokens?.access_token) {
+        return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const { access_token } = req.session.user.tokens;
+
+    try {
+        const calendarId = 'primary';
+        const encodedCalendarId = encodeURIComponent(calendarId);
+        const embedUrl = `https://calendar.google.com/calendar/embed?src=${encodedCalendarId}&ctz=America%2FNew_York&access_token=${access_token}`;
+
+        return res.json({ embedUrl });
+
+    } catch (err) {
+        console.error('Error generating embed URL:', err);
+        return res.status(500).json({ error: 'Failed to generate embed URL' });
+    }
+}
+
 async function getLogout(req, res) {
     req.session.destroy((err) => {
       res.clearCookie('philly.sid');
-      res.redirect('/pages/login.html');
+      res.redirect('/');
     });
 }
 
@@ -97,6 +114,15 @@ async function getProfile(req, res) {
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-    // return only profile fields for safety
     return res.json({ user: req.session.user.profile });
 }
+
+module.exports = {
+    getSession,
+    getGoogleAuth,
+    getGoogleAuthCallback,
+    getLogout,
+    getCalendar,
+    getUser,
+    getProfile
+};
