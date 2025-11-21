@@ -150,9 +150,3 @@ if (document.readyState === 'loading') {
 } else {
     initMap('map');
 }
-
-export function login() {
-    button.addListener('click', function() {
-        
-    });
-}
