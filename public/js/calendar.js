@@ -11,17 +11,18 @@ export async function initCalendar(calendarContainerId) {
         }
 
         const response = await fetch('/api/calendar/embed', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Failed to get embed URL');
+        if (response.status === 200) {
+            const data = await response.json();
+            const iframe = document.createElement('iframe');
+            iframe.src = data.embedUrl;
+            iframe.style.border = '0';
+            iframe.style.width = '80%';
+            iframe.style.height = '800px';
 
-        const data = await response.json();
-
-        const iframe = document.createElement('iframe');
-        iframe.src = data.embedUrl;
-        iframe.style.border = '0';
-        iframe.style.width = '80%';
-        iframe.style.height = '800px';
-
-        calendar.appendChild(iframe);
+            calendar.appendChild(iframe);
+        } else {
+            throw new Error('Failed to get embed URL');
+        }
 
     } catch (err) {
         console.error('Error loading calendar:', err);
