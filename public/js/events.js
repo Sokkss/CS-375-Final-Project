@@ -177,7 +177,17 @@ function displayEvents(events) {
 // Create an event card element
 function createEventCard(event) {
     const card = document.createElement('div');
-    card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow';
+    card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer';
+    
+    card.onclick = (e) => {
+        // prevent clicking on buttons or links within the card
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) {
+            return;
+        }
+        
+        let url = `/pages/event-details.html?id=${event.id}`;
+        window.location.href = url;
+    };
     
     // Format date
     const eventDate = new Date(event.time);
