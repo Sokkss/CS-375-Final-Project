@@ -3,14 +3,14 @@ export async function initCalendar(calendarContainerId) {
     calendar.textContent = '';
 
     try {
-        const userResponse = await fetch('/api/user', { cache: 'no-store' });
+        const userResponse = await fetch('/api/user', { cache: 'no-store', credentials: 'include' });
 
         const userData = await userResponse.json();
         if (!userData.authenticated) {
             throw new Error('User not logged in');
         }
 
-        const response = await fetch('/api/calendar/embed', { cache: 'no-store' });
+        const response = await fetch('/api/calendar/embed', { cache: 'no-store', credentials: 'include' });
         if (response.status === 200) {
             const data = await response.json();
             const iframe = document.createElement('iframe');

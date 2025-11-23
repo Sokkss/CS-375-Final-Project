@@ -7,7 +7,7 @@ async function updateUserIcon() {
     if (!userIconButton) return;
 
     try {
-        const response = await fetch('/api/user', { cache: 'no-store' });
+        const response = await fetch('/api/user', { cache: 'no-store', credentials: 'include' });
         const data = await response.json();
 
         if (data.authenticated && data.user?.picture) {
@@ -57,7 +57,7 @@ export function logout() {
     if (!logoutButton) return;
 
     logoutButton.addEventListener('click', async () => {
-        await fetch('/auth/logout', { method: 'GET', credentials: 'include' });
+        await fetch('/auth/logout', { credentials: 'include' });
 
         localStorage.removeItem('profileImage');
         updateUserIcon();
