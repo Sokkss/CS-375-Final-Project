@@ -1,26 +1,384 @@
-<!-- UI for user's calendar -->
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>Calendar</title>
-	<link rel="stylesheet" type="text/css" href="../dist/output.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calendar — CS-375</title>
+  <link rel="stylesheet" href="/css/output.css">
+  <style>
+    :root {
+      --hour-height: 48px;
+      --day-header-height: 40px;
+      --bg-page: #f3f4ed;
+      --bg-card: #ffffff;
+      --bg-calendar: #f8faf4;
+      --border-soft: #e2e8d8;
+      --border-strong: #cbd5b0;
+      --accent: #16a34a;
+      --accent-soft: #bbf7d0;
+      --accent-dark: #166534;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --text-subtle: #9ca3af;
+      --danger: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      padding: 20px 12px 32px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      background: var(--bg-card);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      padding: 18px 20px 20px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
+
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .view-pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .subtitle { font-size: 0.85rem; color: var(--text-muted); }
+
+    .week-label {
+      margin-top: 2px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #f9faf5;
+    }
+
+    .week-label-icon { width: 14px; height: 14px; color: var(--accent-dark); }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #f9fafb;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.12s, border-color 0.12s, transform 0.08s, box-shadow 0.08s;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 14px; height: 14px; }
+
+    .btn:hover {
+      background: #eef2e8;
+      border-color: var(--border-strong);
+      transform: translateY(-0.5px);
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border-color: #15803d;
+    }
+    .btn-primary:hover { background: #15803d; border-color: #166534; }
+
+    .btn-danger {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: var(--danger);
+    }
+    .btn-danger:hover { background: #fecaca; border-color: #fca5a5; }
+
+    .user-row {
+      margin-top: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 1px solid var(--border-soft);
+    }
+
+    .user-meta { display: flex; flex-direction: column; gap: 2px; }
+    .user-name { font-weight: 500; font-size: 0.9rem; }
+    .user-email { font-size: 0.78rem; text-transform: lowercase; color: var(--text-subtle); }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: #f5fdf7;
+      font-size: 0.78rem;
+      color: var(--accent-dark);
+    }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 999px; background: #16a34a; }
+
+    .calendar-shell {
+      margin-top: 4px;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-calendar);
+      overflow: hidden;
+    }
+
+    .calendar-scroll {
+      display: flex;
+      max-height: 70vh;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    .time-column {
+      flex: 0 0 60px;
+      border-right: 1px solid var(--border-soft);
+      background: #f5f7ec;
+    }
+
+    .time-header {
+      height: var(--day-header-height);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .time-col { display: flex; flex-direction: column; }
+
+    .time-cell {
+      height: var(--hour-height);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.7);
+      padding: 4px 6px 0 0;
+      font-size: 0.7rem;
+      color: var(--text-subtle);
+      text-align: right;
+    }
+
+    .days-wrapper {
+      flex: 1 1 auto;
+      min-width: 720px;
+      background: var(--bg-calendar);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      border-right: 1px solid var(--border-soft);
+    }
+
+    .day-col {
+      position: relative;
+      min-height: calc(var(--hour-height) * 24 + var(--day-header-height));
+      border-left: 1px solid var(--border-soft);
+      background: transparent;
+    }
+
+    .day-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      height: var(--day-header-height);
+      border-bottom: 1px solid var(--border-soft);
+      background: linear-gradient(to bottom, #ffffff, #f4f5ea);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: 0.78rem;
+    }
+
+    .day-name {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      color: var(--text-subtle);
+    }
+
+    .day-date { font-weight: 500; color: var(--text-main); }
+
+    .day-col--today .day-header {
+      background: #e0f9e6;
+      border-bottom-color: #a3e4b7;
+    }
+
+    .today-pill {
+      margin-top: 2px;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #16a34a;
+      color: white;
+    }
+
+    .slots { position: relative; }
+
+    .slot {
+      height: var(--hour-height);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.7);
+      background: rgba(255, 255, 255, 0.7);
+    }
+    .slot:nth-child(even) { background: rgba(250, 250, 245, 0.9); }
+
+    .event {
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      background: #16a34a;
+      color: white;
+      padding: 5px 7px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      box-shadow: 0 10px 22px rgba(21, 128, 61, 0.4);
+      border: 1px solid #bbf7d0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.08s, box-shadow 0.08s, background 0.1s;
+    }
+
+    .event:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(21, 128, 61, 0.5);
+      background: #15803d;
+    }
+
+    .event-title {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-time { font-size: 0.7rem; opacity: 0.95; }
+
+    .empty-msg {
+      border-top: 1px solid var(--border-soft);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: #f7f8ee;
+    }
+
+    @media (max-width: 768px) {
+      .shell { padding: 14px 12px 16px; }
+      header { align-items: flex-start; }
+      .controls { width: 100%; justify-content: flex-start; }
+      .calendar-scroll { max-height: 65vh; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <nav class="flex justify-between items-center p-2">
-        <div>
-            <img src="../images/temp-logo.png" alt="Logo" class="w-8 h-8">
+<body>
+  <div class="shell">
+    <header>
+      <div class="header-left">
+        <h1>
+          Calendar
+          <span class="view-pill">Week View</span>
+        </h1>
+        <div class="subtitle">
+          Read-only view of your Google Calendar. Add events from the event details page.
         </div>
-        <div class="flex space-x-6 text-sm">
-            <a href="../index.html">Home</a>
-            <a href="login.html">Login</a>
-            <a href="search.html">Search</a>
-            <a href="events.html">Events</a>
-            <a href="calendar.html">Calendar</a>
+        <div id="weekLabel" class="week-label">
+          <svg class="week-label-icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path fill="currentColor" d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1Zm0 6a1 1 0 0 0-1 1v1h2V9a1 1 0 0 0-1-1Zm4 0a1 1 0 0 0-1 1v1h2V9a1 1 0 0 0-1-1Zm4 0a1 1 0 0 0-1 1v1h2V9a1 1 0 0 0-1-1Z"/>
+          </svg>
+          <span>Loading week…</span>
         </div>
-        <div>
-            <img src="../images/user.png" alt="User" class="w-8 h-8">
+      </div>
+      <div class="controls">
+        <button id="prevWeek" class="btn" type="button">Prev</button>
+        <button id="todayBtn" class="btn" type="button">Today</button>
+        <button id="nextWeek" class="btn" type="button">Next</button>
+        <button id="syncBtn" class="btn btn-primary" type="button">Sync</button>
+        <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
+      </div>
+    </header>
+
+    <div class="user-row">
+      <div id="userBox" class="user-info"></div>
+      <div class="status-chip">
+        <span class="status-dot"></span>
+        <span>Connected to Google Calendar</span>
+      </div>
+    </div>
+
+    <div class="calendar-shell">
+      <div class="calendar-scroll">
+        <div class="time-column">
+          <div class="time-header"></div>
+          <div id="times" class="time-col"></div>
         </div>
-    </nav>
+        <div class="days-wrapper">
+          <div id="gridContainer" class="grid"></div>
+        </div>
+      </div>
+      <div id="emptyMsg" class="empty-msg">Loading events…</div>
+    </div>
+  </div>
+
+  <script src="/js/calendar.js"></script>
 </body>
 </html>
