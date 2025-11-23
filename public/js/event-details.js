@@ -77,7 +77,7 @@ function displayEventDetails(event) {
     }
   
     if (event.lat && event.long) {
-        initEventMap(parseFloat(event.lat), parseFloat(event.long), event.title);
+        initEventMap(event);
     }
 
     let externalLinkContainer = document.getElementById('externalLinkContainer');
@@ -91,18 +91,12 @@ function displayEventDetails(event) {
     setupRSVPButton(event.id, event.owner);
 }
 
-function initEventMap(lat, lng, title) {
+function initEventMap(event) {
     let mapContainer = document.getElementById('eventMapContainer');
     mapContainer.classList.remove('hidden');
 
     initMap('eventMap', false).then(() => {
-        let eventObj = {
-            lat: lat,
-            long: lng,
-            title: title
-        };
-        
-        updateMapMarkers([eventObj]);
+        updateMapMarkers([event]);
     }).catch(error => {
         console.error('Error initializing map:', error);
     });
