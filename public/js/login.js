@@ -67,7 +67,7 @@ export function logout() {
             calendar.textContent = '';
             const errorMessage = document.createElement('p');
             errorMessage.textContent = 'You must be logged in to view the calendar.';
-            errorMessage.classList.add('text-red-500', 'font-semibold', 'text-center', 'mt-4');
+            errorMessage.classList.add('font-semibold', 'text-center', 'mt-4');
             calendar.appendChild(errorMessage);
         }
     });

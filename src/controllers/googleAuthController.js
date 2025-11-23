@@ -17,13 +17,13 @@ const SCOPES = [
 function getSession() { 
     return session({
         name: 'philly.sid',
-        secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', // can remove ??
-          sameSite: 'lax',
+          secure: true,
+          sameSite: 'none',
           maxAge: 24 * 60 * 60 * 1000
         }
     });
@@ -64,7 +64,10 @@ async function getGoogleAuthCallback(req, res) {
         }
         };
 
-        return res.redirect("/auth/close");
+        req.session.save((err) => {
+            if (err) console.error('Session save error:', err);
+            return res.redirect('/auth/close');
+        });
 
     } catch (err) {
         console.error('OAuth callback error:', err);
@@ -93,8 +96,11 @@ async function getCalendar(req, res) {
 }
 
 async function getLogout(req, res) {
-    req.session.destroy((err) => {
-      res.clearCookie('philly.sid');
+    req.session.destroy(() => {
+      res.clearCookie('philly.sid', {
+            secure: true,
+            sameSite: 'none',
+        });
       res.redirect('/');
     });
 }
