@@ -1,4 +1,4 @@
-# CS-375-Final-Project
+# [CS-375-Final-Project](https://cs-375-final-project.fly.dev/)
 
 ## Setup
 
