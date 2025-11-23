@@ -1,6 +1,3 @@
-// Events Page - Handles creating and displaying events
-
-// Get DOM elements
 const toggleFormBtn = document.getElementById('toggleFormBtn');
 const closeFormBtn = document.getElementById('closeFormBtn');
 const cancelBtn = document.getElementById('cancelBtn');
@@ -11,21 +8,43 @@ const eventsList = document.getElementById('eventsList');
 const loadingSpinner = document.getElementById('loadingSpinner');
 const noEvents = document.getElementById('noEvents');
 
-// Track current user (for RSVP and edit/delete permissions)
-let currentUser = localStorage.getItem('currentUser') || '';
+// Track current user (from Google OAuth)
+let currentUser = null;
+let currentUserEmail = null;
 
-// Add user input field listener if it exists
-document.addEventListener('DOMContentLoaded', () => {
-    const ownerInput = document.getElementById('owner');
-    if (ownerInput && ownerInput.value) {
-        currentUser = ownerInput.value;
-        localStorage.setItem('currentUser', currentUser);
+// Fetch logged-in user from session
+async function fetchCurrentUser() {
+    try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        
+        if (data.authenticated && data.user) {
+            currentUser = data.user.name;
+            currentUserEmail = data.user.email;
+            console.log('Logged in as:', currentUser, currentUserEmail);
+        } else {
+            currentUser = null;
+            currentUserEmail = null;
+        }
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        currentUser = null;
+        currentUserEmail = null;
     }
+}
+
+// Initialize user and set up modal listeners on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchCurrentUser();
+    loadEvents();
     
-    ownerInput?.addEventListener('input', (e) => {
-        currentUser = e.target.value;
-        localStorage.setItem('currentUser', currentUser);
-    });
+    // Set up modal event listeners
+    document.getElementById('confirmRsvp')?.addEventListener('click', confirmRSVP);
+    document.getElementById('cancelRsvp')?.addEventListener('click', closeRsvpModal);
+    document.getElementById('closeRsvpModal')?.addEventListener('click', closeRsvpModal);
+    document.getElementById('closeAttendeesModal')?.addEventListener('click', closeAttendeesModal);
+    document.getElementById('closeAttendeesBtn')?.addEventListener('click', closeAttendeesModal);
+    document.getElementById('copyEmails')?.addEventListener('click', copyEmails);
 });
 
 // Show/Hide create event form
@@ -54,6 +73,12 @@ function hideForm() {
 eventForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    // Check if user is logged in
+    if (!currentUser) {
+        showMessage('Please log in to create events', 'error');
+        return;
+    }
+    
     // Get form values
     const title = document.getElementById('title').value.trim();
     const description = document.getElementById('description').value.trim();
@@ -61,12 +86,12 @@ eventForm.addEventListener('submit', async (e) => {
     const lat = document.getElementById('lat').value.trim() || null;
     const long = document.getElementById('long').value.trim() || null;
     const datetime = document.getElementById('datetime').value;
-    const owner = document.getElementById('owner').value.trim();
+    const owner = currentUser; // Use logged-in user automatically
     const image = document.getElementById('image').value.trim() || null;
     const externalLink = document.getElementById('externalLink').value.trim() || null;
     
     // Validate required fields
-    if (!title || !locationDescription || !datetime || !owner) {
+    if (!title || !locationDescription || !datetime) {
         showMessage('Please fill in all required fields', 'error');
         return;
     }
@@ -115,10 +140,9 @@ eventForm.addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (response.ok) {
-            // Success!
             showMessage(isEditing ? 'Event updated successfully!' : 'Event created successfully!', 'success');
             eventForm.reset();
-            delete eventForm.dataset.editingId; // Clear edit mode
+            delete eventForm.dataset.editingId;
             
             // Reset submit button text
             const submitBtn = eventForm.querySelector('button[type="submit"]');
@@ -126,10 +150,8 @@ eventForm.addEventListener('submit', async (e) => {
             
             hideForm();
             
-            // Reload events list
             loadEvents();
         } else {
-            // Error from server
             showMessage(data.error || (isEditing ? 'Failed to update event' : 'Failed to create event'), 'error');
         }
     } catch (error) {
@@ -163,7 +185,7 @@ async function loadEvents() {
     }
 }
 
-// Display events in the grid
+
 function displayEvents(events) {
     eventsList.innerHTML = '';
     eventsList.classList.remove('hidden');
@@ -302,19 +324,16 @@ function createEventCard(event) {
         contentDiv.appendChild(linkA);
     }
 
-    // Edit/Delete buttons (only for event owner)
     if (currentUser && currentUser === event.owner) {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'mt-4 flex gap-2';
         
-        // Edit button
         const editBtn = document.createElement('button');
         editBtn.className = 'bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-sm py-2 px-4 rounded';
         editBtn.textContent = 'Edit Event';
         editBtn.onclick = () => editEvent(event);
         buttonContainer.appendChild(editBtn);
         
-        // Delete button
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'bg-red-500 hover:bg-red-600 text-gray-900 text-sm py-2 px-4 rounded';
         deleteBtn.textContent = 'Delete Event';
@@ -329,7 +348,7 @@ function createEventCard(event) {
     return card;
 }
 
-// Fetch and display RSVP count for an event
+
 async function fetchRSVPCount(eventId) {
     try {
         const response = await fetch(`/api/events/${eventId}/attendees`);
@@ -349,30 +368,42 @@ async function fetchRSVPCount(eventId) {
     }
 }
 
-// Handle RSVP to an event
+
+let pendingRsvpEventId = null;
+
 async function handleRSVP(eventId) {
-    if (!currentUser) {
-        showMessage('Please enter your name in the "Owner" field to RSVP', 'error');
+    if (!currentUser || !currentUserEmail) {
+        showMessage('Please log in to RSVP to events', 'error');
         return;
     }
     
-    // Ask for email
-    const userEmail = prompt('Please enter your email address (so the event owner can contact you):');
+    pendingRsvpEventId = eventId;
     
-    if (!userEmail || !userEmail.includes('@')) {
-        showMessage('Valid email address required to RSVP', 'error');
-        return;
-    }
+    const modal = document.getElementById('rsvpModal');
+    document.getElementById('rsvpName').value = currentUser;
+    document.getElementById('rsvpEmail').value = currentUserEmail;
+    
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    
+    document.body.style.overflow = 'hidden';
+    
+    modal.classList.remove('hidden');
+}
+
+async function confirmRSVP() {
+    if (!pendingRsvpEventId) return;
     
     try {
-        const response = await fetch(`/api/events/${eventId}/rsvp`, {
+        const response = await fetch(`/api/events/${pendingRsvpEventId}/rsvp`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ 
                 userId: currentUser,
-                userEmail: userEmail
+                userEmail: currentUserEmail
             })
         });
         
@@ -381,26 +412,33 @@ async function handleRSVP(eventId) {
         if (response.ok) {
             showMessage('Successfully RSVP\'d to event!', 'success');
             
-            // Update the button
-            const btn = document.getElementById(`rsvp-btn-${eventId}`);
+            const btn = document.getElementById(`rsvp-btn-${pendingRsvpEventId}`);
             if (btn) {
                 btn.textContent = 'RSVP\'d ✓';
                 btn.disabled = true;
                 btn.className = 'bg-gray-400 text-white text-xs py-1 px-3 rounded mt-1 cursor-not-allowed';
             }
             
-            // Refresh RSVP count
-            fetchRSVPCount(eventId);
+            fetchRSVPCount(pendingRsvpEventId);
+            
+            closeRsvpModal();
         } else {
             showMessage(data.error || 'Failed to RSVP', 'error');
+            closeRsvpModal();
         }
     } catch (error) {
         console.error('Error RSVPing to event:', error);
         showMessage('An error occurred. Please try again.', 'error');
+        closeRsvpModal();
     }
 }
 
-// Show attendees list (for event owner)
+function closeRsvpModal() {
+    document.body.style.overflow = ''; 
+    document.getElementById('rsvpModal').classList.add('hidden');
+    pendingRsvpEventId = null;
+}
+
 async function showAttendees(eventId, eventTitle) {
     try {
         const response = await fetch(`/api/events/${eventId}/attendees`);
@@ -410,32 +448,47 @@ async function showAttendees(eventId, eventTitle) {
             const attendees = data.attendees || [];
             const count = data.count || 0;
             
+            document.getElementById('attendeesEventTitle').textContent = `Event: ${eventTitle}`;
+            
+            const attendeesList = document.getElementById('attendeesList');
             if (count === 0) {
-                alert(`No attendees yet for "${eventTitle}".`);
-                return;
-            }
-            
-            // Build attendee list with emails
-            let message = `Attendees for "${eventTitle}":\n\n`;
-            const emails = [];
-            
-            attendees.forEach(attendee => {
-                message += `${attendee.name}`;
-                if (attendee.email) {
-                    message += ` - ${attendee.email}`;
-                    emails.push(attendee.email);
+                attendeesList.innerHTML = '<p class="text-gray-600">No attendees yet for this event.</p>';
+                document.getElementById('attendeesEmailSection').classList.add('hidden');
+            } else {
+                let listHTML = `<p class="text-gray-600 mb-3">Total: ${count} attendee${count !== 1 ? 's' : ''}</p>`;
+                listHTML += '<div class="space-y-2">';
+                
+                const emails = [];
+                attendees.forEach(attendee => {
+                    listHTML += `<div class="border-b pb-2">
+                        <p class="font-semibold text-gray-800">${attendee.name}</p>`;
+                    if (attendee.email) {
+                        listHTML += `<p class="text-gray-600 text-sm">${attendee.email}</p>`;
+                        emails.push(attendee.email);
+                    }
+                    listHTML += '</div>';
+                });
+                
+                listHTML += '</div>';
+                attendeesList.innerHTML = listHTML;
+                
+                // Show email section if there are emails
+                if (emails.length > 0) {
+                    document.getElementById('attendeesEmailSection').classList.remove('hidden');
+                    document.getElementById('attendeesEmails').value = emails.join(', ');
+                } else {
+                    document.getElementById('attendeesEmailSection').classList.add('hidden');
                 }
-                message += '\n';
-            });
-            
-            message += `\n\nTotal: ${count} attendee${count !== 1 ? 's' : ''}`;
-            
-            if (emails.length > 0) {
-                message += `\n\n--- COPY ALL EMAILS ---\n${emails.join(', ')}`;
-                message += '\n\nTip: You can copy the emails above and paste into your email client!';
             }
             
-            alert(message);
+            // Show modal with forced positioning
+            const modal = document.getElementById('attendeesModal');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            
+            document.body.style.overflow = 'hidden';
+            modal.classList.remove('hidden');
         } else {
             showMessage('Failed to load attendees', 'error');
         }
@@ -445,16 +498,32 @@ async function showAttendees(eventId, eventTitle) {
     }
 }
 
-// Edit an event
+function closeAttendeesModal() {
+    document.body.style.overflow = '';
+    document.getElementById('attendeesModal').classList.add('hidden');
+}
+
+// Copy emails to clipboard
+function copyEmails() {
+    const emailsTextarea = document.getElementById('attendeesEmails');
+    emailsTextarea.select();
+    document.execCommand('copy');
+    
+    const btn = document.getElementById('copyEmails');
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 2000);
+}
+
+
 function editEvent(event) {
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // Show the form
     createEventForm.classList.remove('hidden');
     toggleFormBtn.classList.add('hidden');
     
-    // Populate form fields
     document.getElementById('title').value = event.title;
     document.getElementById('description').value = event.description || '';
     document.getElementById('locationDescription').value = event.locationDescription || event.location || '';
@@ -466,21 +535,17 @@ function editEvent(event) {
     const dateString = eventDate.toISOString().slice(0, 16);
     document.getElementById('datetime').value = dateString;
     
-    document.getElementById('owner').value = event.owner;
     document.getElementById('image').value = event.image || '';
     document.getElementById('externalLink').value = event.externalLink || event.external_link || '';
-    
-    // Change form to edit mode
+
     const submitBtn = eventForm.querySelector('button[type="submit"]');
     submitBtn.textContent = 'Update Event';
     
-    // Store event ID for update
     eventForm.dataset.editingId = event.id;
     
     showMessage('Editing event - make your changes and click "Update Event"', 'success');
 }
 
-// Delete event with confirmation
 async function deleteEventConfirm(eventId, eventTitle) {
     if (!confirm(`Are you sure you want to delete "${eventTitle}"? This cannot be undone.`)) {
         return;
@@ -499,7 +564,7 @@ async function deleteEventConfirm(eventId, eventTitle) {
         
         if (response.ok) {
             showMessage('Event deleted successfully!', 'success');
-            loadEvents(); // Reload events list
+            loadEvents();
         } else {
             showMessage(data.error || 'Failed to delete event', 'error');
         }
@@ -509,7 +574,6 @@ async function deleteEventConfirm(eventId, eventTitle) {
     }
 }
 
-// Show message
 function showMessage(message, type) {
     messageDiv.textContent = message;
     messageDiv.className = `mb-4 p-4 rounded ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
@@ -517,12 +581,6 @@ function showMessage(message, type) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Hide message
 function hideMessage() {
     messageDiv.classList.add('hidden');
 }
-
-// Load events when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    loadEvents();
-});

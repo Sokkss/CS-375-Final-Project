@@ -140,22 +140,8 @@
                 >
             </div>
 
-            <!-- Event Owner -->
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="owner">
-                    Your Name *
-                </label>
-                <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="owner"
-                        placeholder="e.g., midhusi"
-                        required
-                        type="text"
-                >
-                <p class="text-gray-600 text-xs italic mt-1">
-                    Note: This will be replaced with automatic user authentication later
-                </p>
-            </div>
+            <!-- Event Owner (hidden - auto-set from logged-in user) -->
+            <input type="hidden" id="owner">
 
             <!-- Image URL (optional) -->
             <div class="mb-4">
@@ -220,6 +206,57 @@
         <div class="hidden text-center py-8" id="noEvents">
             <p class="text-gray-600">No events found. Be the first to create one!</p>
         </div>
+    </div>
+</div>
+
+<!-- RSVP Modal -->
+<div id="rsvpModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-auto">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 my-8">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold text-gray-800">RSVP to Event</h3>
+            <button id="closeRsvpModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        <p class="text-gray-600 mb-4">Confirm your RSVP for this event.</p>
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Your Name</label>
+            <input id="rsvpName" type="text" readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" />
+        </div>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Your Email</label>
+            <input id="rsvpEmail" type="email" readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" />
+        </div>
+        <div class="flex gap-4">
+            <button id="confirmRsvp" class="flex-1 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Confirm RSVP
+            </button>
+            <button id="cancelRsvp" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Attendees Modal -->
+<div id="attendeesModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+    <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold text-gray-800">Event Attendees</h3>
+            <button id="closeAttendeesModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        <p id="attendeesEventTitle" class="text-gray-600 mb-4 font-semibold"></p>
+        <div id="attendeesList" class="mb-4">
+            <!-- Attendees will be inserted here -->
+        </div>
+        <div id="attendeesEmailSection" class="hidden mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2">All Attendee Emails (for copying)</label>
+            <textarea id="attendeesEmails" readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 h-20"></textarea>
+            <button id="copyEmails" class="mt-2 bg-green-500 hover:bg-green-600 text-white text-sm py-2 px-4 rounded">
+                Copy Emails
+            </button>
+        </div>
+        <button id="closeAttendeesBtn" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+            Close
+        </button>
     </div>
 </div>
 
