@@ -30,7 +30,7 @@ export function login() {
     loginButton.addEventListener('click', () => {
         const currentUrl = window.location.href;
         const popup = window.open(
-            `/auth/google?redirect=${encodeURIComponent(currentUrl)}`,
+            `${window.location.origin}/auth/google?redirect=${encodeURIComponent(currentUrl)}`,
             "googleLogin",
             "width=500,height=600"
         );
