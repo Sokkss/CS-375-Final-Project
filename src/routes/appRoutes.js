@@ -7,6 +7,8 @@ const googleAuthController = require('../controllers/googleAuthController');
 // citation: largely from Professor Long's sample code
 function createRoutes(pool) {
     const router = express.Router();
+    
+    router.use(googleAuthController.getSession());
 
     router.get('/events/philly/next-week', getPhillyNextWeek);
 
@@ -24,7 +26,6 @@ function createRoutes(pool) {
     router.get('/api/events/:id/attendees', (req, res) => eventController.getEventAttendees(req, res, pool));
 
     // Google OAuth + calendar
-    router.use(googleAuthController.getSession());
     router.get('/auth/google', (req, res) => googleAuthController.getGoogleAuth(req, res));
     router.get('/auth/google/callback', (req, res) => googleAuthController.getGoogleAuthCallback(req, res));
     router.get('/auth/logout', (req, res) => googleAuthController.getLogout(req, res));
