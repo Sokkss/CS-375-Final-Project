@@ -15,6 +15,9 @@ async function updateUserIcon() {
         userIconButton.src = defaultPic;
     }
 
+    userIconButton.classList.remove('invisible'); 
+    userIconButton.classList.add('cursor-pointer');
+
     try {
         const response = await fetch('/api/user', { cache: 'no-store', credentials: 'include' });
         const data = await response.json();
@@ -47,8 +50,6 @@ export function login() {
             if (event.origin !== window.location.origin) return;
 
             if (event.data.loggedIn && event.data.user?.picture) {
-                const icon = event.data.user.picture;
-                localStorage.setItem('profileImage', icon); 
                 updateUserIcon();
             }
 
