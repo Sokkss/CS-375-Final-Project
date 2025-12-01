@@ -6,21 +6,29 @@ let userDropdown = document.getElementById('userDropdown');
 async function updateUserIcon() {
     if (!userIconButton) return;
 
+    const defaultPic = '../images/abstract-user-flat-1.svg';
+    const cachedPic = localStorage.getItem('profileImage');
+
+    if (cachedPic) {
+        userIconButton.src = cachedPic;
+    } else {
+        userIconButton.src = defaultPic;
+    }
+
     try {
         const response = await fetch('/api/user', { cache: 'no-store', credentials: 'include' });
         const data = await response.json();
 
         if (data.authenticated && data.user?.picture) {
-            userIconButton.src = data.user.picture;
-            localStorage.setItem('profileImage', data.user.picture);
+            const serverPic = data.user.picture;
+            userIconButton.src = serverPic;
+            localStorage.setItem('profileImage', serverPic);
         } else {
-            userIconButton.src = '../images/abstract-user-flat-1.svg';
+            userIconButton.src = defaultPic;
             localStorage.removeItem('profileImage');
         }
     } catch (err) {
         console.error('Error checking user:', err);
-        userIconButton.src = '../images/abstract-user-flat-1.svg';
-        localStorage.removeItem('profileImage');
     }
 }
 
@@ -40,7 +48,7 @@ export function login() {
 
             if (event.data.loggedIn && event.data.user?.picture) {
                 const icon = event.data.user.picture;
-                localStorage.setItem('profileImage', icon);
+                localStorage.setItem('profileImage', icon); 
                 updateUserIcon();
             }
 

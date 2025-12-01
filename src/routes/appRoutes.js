@@ -31,7 +31,7 @@ function createRoutes(pool) {
     router.get('/auth/logout', (req, res) => googleAuthController.getLogout(req, res));
     router.get('/api/user', (req, res) => googleAuthController.getUser(req, res));
     router.get('/profile', (req, res) => googleAuthController.getProfile(req, res));
-    router.get('/api/calendar/embed', googleAuthController.getCalendar);
+    router.get('/api/calendar/embed', (req, res) => googleAuthController.getCalendar(req, res));
     router.get("/auth/close", (req, res) => {
         const picture = req.session?.user?.profile?.picture || null;
 
