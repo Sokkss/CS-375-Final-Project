@@ -16,7 +16,7 @@ export async function initCalendar(calendarContainerId) {
             const iframe = document.createElement('iframe');
             iframe.src = data.embedUrl;
             iframe.style.border = '0';
-            iframe.style.width = '80%';
+            iframe.style.width = '100%';
             iframe.style.height = '800px';
 
             calendar.appendChild(iframe);
