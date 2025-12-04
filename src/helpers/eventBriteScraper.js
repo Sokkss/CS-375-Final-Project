@@ -22,6 +22,8 @@ async function fetchEventbriteEvents() {
         await page.setExtraHTTPHeaders({'Accept-Language': 'en-US,en;q=0.9'});
 
         const RESULTS_SELECTOR = 'ul[class*="SearchResultPanelContentEventCardList-module__eventList"]';
+        const htmlEarly = await page.content();
+        console.log("HTML snapshot:", htmlEarly.slice(0, 2000));
         await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
 
         const html = await page.content();
