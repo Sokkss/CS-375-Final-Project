@@ -9,7 +9,7 @@ const { parseDateString } = require('../utils/dateParser');
 async function fetchEventbriteEvents() {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-plugins', '--single-process'] });
+    const browser = await puppeteer.launch({ headless: true, executablePath: process.env.CHROME_PATH, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-plugins', '--single-process'] });
     const page = await browser.newPage();
 
     let formattedEvents = [];
