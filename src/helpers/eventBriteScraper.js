@@ -18,12 +18,8 @@ async function fetchEventbriteEvents() {
         const url = `${BASE_URL}?page=${currentPage}`;
         await page.goto(url, { timeout: 60000, waitUntil: 'networkidle2' });
 
-        await page.setUserAgent(
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        );
-        await page.setExtraHTTPHeaders({
-            'Accept-Language': 'en-US,en;q=0.9'
-        });
+        await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setExtraHTTPHeaders({'Accept-Language': 'en-US,en;q=0.9'});
 
         const RESULTS_SELECTOR = 'ul[class*="SearchResultPanelContentEventCardList-module__eventList"]';
         await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
