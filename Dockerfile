@@ -58,8 +58,6 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* \
 
-ENV CHROME_PATH="/usr/bin/chromium"
-
 # Final stage for app image
 FROM base
 
