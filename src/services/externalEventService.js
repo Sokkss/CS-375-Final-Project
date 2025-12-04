@@ -4,7 +4,9 @@ const fetchEventbriteEvents = require('../helpers/eventBriteScraper');
 const eventService = require('./eventService');
 
 async function collectAndStoreExternalEvents(pool) {
-    await clearExternalEvents(pool);
+    await clearPastExternalEvents(pool);
+
+    const existingEvents = await getExistingExternalEvents(pool);
 
     const [seatGeekEvents, visitPhillyEvents, eventbriteEvents] = await Promise.allSettled([
         fetchSeatGeekEvents(),
@@ -31,6 +33,10 @@ async function collectAndStoreExternalEvents(pool) {
     let savedCount = 0;
     for (const event of allEvents) {
         try {
+            if (isDuplicate(event, existingEvents)) {
+                continue;
+            }
+            
             const eventData = {
                 title: event.title,
                 description: event.description || '',
@@ -51,10 +57,49 @@ async function collectAndStoreExternalEvents(pool) {
     return { success: true, saved: savedCount, total: allEvents.length };
 }
 
-async function clearExternalEvents(pool) {
-    const query = 'DELETE FROM events WHERE is_external = true';
-    const result = await pool.query(query);
-    return result.rowCount;
+async function clearPastExternalEvents(pool) {
+    const query = 'DELETE FROM events WHERE is_external = true AND time < NOW()';
+    await pool.query(query);
+}
+
+async function getExistingExternalEvents(pool) {
+    const query = 'SELECT * FROM events WHERE is_external = true';
+    try {
+        const result = await pool.query(query);
+        return result.rows;
+    } catch (error) {
+        console.error('Error getting existing external events:', error);
+        return [];
+    }
+}
+
+function isDuplicate(newEvent, existingEvents) {
+    const normalize = (str) => (str || '').toLowerCase().trim();
+    const newTitle = normalize(newEvent.title);
+    const newLocation = normalize(newEvent.locationDescription);
+    const newOwner = newEvent.owner;
+    const newTime = new Date(newEvent.time);
+    
+    for (const existing of existingEvents) {
+        const existingTitle = normalize(existing.title);
+        const existingLocation = normalize(existing.location_description);
+        const existingOwner = existing.owner;
+        const existingTime = new Date(existing.time);
+        
+        if (newTitle === existingTitle && 
+            newLocation === existingLocation && 
+            newOwner === existingOwner) {
+            
+            const timeDiff = Math.abs(newTime.getTime() - existingTime.getTime());
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
 }
 
 module.exports = {
