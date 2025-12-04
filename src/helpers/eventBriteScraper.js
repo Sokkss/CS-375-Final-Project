@@ -9,12 +9,12 @@ const { parseDateString } = require('../utils/dateParser');
 async function fetchEventbriteEvents() {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-plugins', '--single-process'] });
     const page = await browser.newPage();
 
     let formattedEvents = [];
 
-    for (let currentPage = 1; currentPage <= 5; currentPage++) {
+    for (let currentPage = 1; currentPage <= 3; currentPage++) {
         const url = `${BASE_URL}?page=${currentPage}`;
         await page.goto(url, { timeout: 60000 });
 
@@ -26,10 +26,12 @@ async function fetchEventbriteEvents() {
 
         const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
             const $eventSection = $(event);
-            const title = $eventSection.find('a').attr('aria-label').trim().replace('View ', '');
+            const titleScrape = $eventSection.find('a').attr('aria-label');
+            const title = titleScrape ? titleScrape.trim().replace('View ', '') : '';
             const description = $eventSection.find('a').attr('href');
 
-            const pClass = $eventSection.find('p').map((_, p) => $(p).text().trim()).get();
+            const pClassScrape = $eventSection.find('p');
+            const pClass = pClassScrape ? pClassScrape.map((_, p) => $(p).text().trim()).get() : '';
 
             let date = '';
             let location = '';
