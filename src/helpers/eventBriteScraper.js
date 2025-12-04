@@ -9,22 +9,29 @@ const { parseDateString } = require('../utils/dateParser');
 async function fetchEventbriteEvents() {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
-    const browser = await puppeteer.launch({ headless: true, executablePath: '/usr/bin/chromium', args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-plugins', '--single-process'] });
+    const browser = await puppeteer.launch({ headless: true, executablePath: process.env.CHROME_PATH, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-gpu', '--disable-blink-features=AutomationControlled', '--window-size=1920,1080', '--single-process'] });
     const page = await browser.newPage();
 
     let formattedEvents = [];
 
     for (let currentPage = 1; currentPage <= 3; currentPage++) {
         const url = `${BASE_URL}?page=${currentPage}`;
-        await page.goto(url, { timeout: 60000 });
+        await page.goto(url, { timeout: 60000, waitUntil: 'networkidle2' });
 
-        const RESULTS_SELECTOR = '.SearchResultPanelContentEventCardList-module__eventList___2wk-D';
+        await page.setUserAgent(
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        );
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9'
+        });
+
+        const RESULTS_SELECTOR = 'ul[class*="SearchResultPanelContentEventCardList-module__eventList"]';
         await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
 
         const html = await page.content();
         const $ = cheerio.load(html);
 
-        const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
+        const events = $(RESULTS_SELECTOR).children('li').map((i, event) => {
             const $eventSection = $(event);
             const titleScrape = $eventSection.find('a').attr('aria-label');
             const title = titleScrape ? titleScrape.trim().replace('View ', '') : '';
@@ -44,6 +51,7 @@ async function fetchEventbriteEvents() {
                 }
             }
 
+            console.log(title, date, description, location)
             return {title, date, description, location};
         }).get();
 
