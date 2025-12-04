@@ -16,7 +16,9 @@
     "googleapis": "^166.0.0",
     "pg": "^8.16.3",
     "postcss": "^8.5.6",
-    "puppeteer-core": "^24.32.0"
+    "puppeteer-core": "^24.32.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.4.11",
