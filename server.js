@@ -40,6 +40,31 @@ let app = createApp(pool);
 KEEP EVERYTHING BELOW HERE
 */
 
+const externalEventService = require('./src/services/externalEventService');
+
+// Runs collection of external events on startup
+setTimeout(() => {
+    externalEventService.collectAndStoreExternalEvents(pool)
+        .then(result => {
+            console.log('External events collected:', result);
+        })
+        .catch(err => {
+            console.error('Error collecting external events:', err);
+        });
+}, 5000);
+
+// Runs collection of external events daily
+const DAY = 24 * 60 * 60 * 1000;
+setInterval(() => {
+    externalEventService.collectAndStoreExternalEvents(pool)
+        .then(result => {
+            console.log('External events collected:', result);
+        })
+        .catch(err => {
+            console.error('Error collecting external events:', err);
+        });
+}, DAY);
+
 app.listen(port, host, () => {
 	console.log(`http://${host}:${port}`);
 });

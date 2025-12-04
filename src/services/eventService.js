@@ -4,15 +4,15 @@ const Event = require('../models/Event');
 
 // Save a new event to the database
 async function saveEvent(pool, eventData) {
-    const { title, description, locationDescription, lat, long, time, owner, image, externalLink } = eventData;
+    const { title, description, locationDescription, lat, long, time, owner, image, externalLink, isExternal } = eventData;
     
     const query = `
-        INSERT INTO events (title, description, location_description, lat, long, time, owner, image, external_link)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO events (title, description, location_description, lat, long, time, owner, image, external_link, is_external)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
     `;
     
-    const values = [title, description, locationDescription, lat, long, time, owner, image, externalLink];
+    const values = [title, description, locationDescription, lat, long, time, owner, image, externalLink, isExternal || false];
     
     try {
         const result = await pool.query(query, values);
@@ -45,18 +45,22 @@ async function getAllEvents(pool) {
         const result = await pool.query(query);
         
         // Convert each database row to Event object
-        return result.rows.map(row => new Event(
-            row.id,
-            row.title,
-            row.description,
-            row.location_description,
-            row.lat,
-            row.long,
-            row.time,
-            row.owner,
-            row.image,
-            row.external_link
-        ));
+        return result.rows.map(row => {
+            const event = new Event(
+                row.id,
+                row.title,
+                row.description,
+                row.location_description,
+                row.lat,
+                row.long,
+                row.time,
+                row.owner,
+                row.image,
+                row.external_link
+            );
+            event.isExternal = row.is_external || false;
+            return event;
+        });
     } catch (error) {
         console.error('Error getting all events:', error);
         throw error;
@@ -75,7 +79,7 @@ async function getEventById(pool, eventId) {
         }
         
         const row = result.rows[0];
-        return new Event(
+        const event = new Event(
             row.id,
             row.title,
             row.description,
@@ -87,6 +91,8 @@ async function getEventById(pool, eventId) {
             row.image,
             row.external_link
         );
+        event.isExternal = row.is_external || false;
+        return event;
     } catch (error) {
         console.error('Error getting event by ID:', error);
         throw error;
@@ -114,7 +120,7 @@ async function updateEvent(pool, eventId, eventData) {
         }
         
         const row = result.rows[0];
-        return new Event(
+        const event = new Event(
             row.id,
             row.title,
             row.description,
@@ -126,6 +132,8 @@ async function updateEvent(pool, eventId, eventData) {
             row.image,
             row.external_link
         );
+        event.isExternal = row.is_external || false;
+        return event;
     } catch (error) {
         console.error('Error updating event:', error);
         throw error;
@@ -229,8 +237,8 @@ function searchEvents(pool, searchFilters) {
     
     return pool.query(query)
         .then(result => {
-            return result.rows.map(row =>
-                new Event(
+            return result.rows.map(row => {
+                const event = new Event(
                     row.id,
                     row.title,
                     row.description,
@@ -241,8 +249,10 @@ function searchEvents(pool, searchFilters) {
                     row.owner,
                     row.image,
                     row.external_link
-                )
-            );
+                );
+                event.isExternal = row.is_external || false;
+                return event;
+            });
         })
         .catch(error => {
             throw error;

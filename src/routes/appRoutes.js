@@ -1,4 +1,5 @@
 const eventController = require('../controllers/eventController');
+const externalEventController = require('../controllers/externalEventController');
 const express = require('express');
 
 const getPhillyNextWeek = require('../controllers/controller');
@@ -24,6 +25,9 @@ function createRoutes(pool) {
     router.post('/api/events/:id/rsvp', (req, res) => eventController.rsvpToEvent(req, res, pool));
     router.delete('/api/events/:id/rsvp', (req, res) => eventController.cancelRSVP(req, res, pool));
     router.get('/api/events/:id/attendees', (req, res) => eventController.getEventAttendees(req, res, pool));
+
+    // External events (seatgeek + visitphilly + eventbrite)
+    router.post('/api/events/collect-external', (req, res) => externalEventController.collectExternalEvents(req, res, pool));
 
     // Google OAuth + calendar
     router.get('/auth/google', (req, res) => googleAuthController.getGoogleAuth(req, res));

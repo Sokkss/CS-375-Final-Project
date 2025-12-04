@@ -1,5 +1,26 @@
 import { initMap, updateMapMarkers } from './index.js';
 
+let currentUser = null;
+let currentUserEmail = null;
+
+async function fetchCurrentUser() {
+    try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        
+        if (data.authenticated && data.user) {
+            currentUser = data.user.name;
+            currentUserEmail = data.user.email;
+        } else {
+            currentUser = null;
+            currentUserEmail = null;
+        }
+    } catch {
+        currentUser = null;
+        currentUserEmail = null;
+    }
+}
+
 function getEventIdFromURL() {
     let urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
@@ -119,7 +140,6 @@ function loadAttendees(eventId) {
 }
 
 function setupRSVPButton(eventId, eventOwner) {
-    let currentUser = localStorage.getItem('currentUser') || '';
     let rsvpButton = document.getElementById('rsvpButton');
 
     if (currentUser && currentUser !== eventOwner) {
@@ -129,16 +149,8 @@ function setupRSVPButton(eventId, eventOwner) {
 }
 
 function handleRSVP(eventId) {
-    let currentUser = localStorage.getItem('currentUser') || '';
-    
-    if (!currentUser) {
-        alert('Please enter your name to RSVP');
-        return;
-    }
-
-    let userEmail = prompt('Please enter your email address:');
-    if (!userEmail || !userEmail.includes('@')) {
-        alert('Valid email address required to RSVP');
+    if (!currentUser || !currentUserEmail) {
+        alert('Please log in to RSVP to events');
         return;
     }
 
@@ -150,7 +162,7 @@ function handleRSVP(eventId) {
         },
         body: JSON.stringify({
             userId: currentUser,
-            userEmail: userEmail
+            userEmail: currentUserEmail
         })
     })
         .then(response => {
@@ -175,4 +187,7 @@ function handleRSVP(eventId) {
         });
 }
 
-document.addEventListener('DOMContentLoaded', loadEventDetails);
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchCurrentUser();
+    loadEventDetails();
+});

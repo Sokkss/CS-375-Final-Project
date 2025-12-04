@@ -26,6 +26,7 @@ CREATE TABLE events (
     owner TEXT NOT NULL,
     image TEXT,
     external_link TEXT,
+    is_external BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
