@@ -33,6 +33,8 @@ RUN npm run build
 # Remove development dependencies
 RUN npm prune --omit=dev
 
+FROM base
+
 # Install Chromium and required dependencies
 RUN apt-get update && apt-get install -y \
     chromium \
@@ -56,10 +58,10 @@ RUN apt-get update && apt-get install -y \
     libxshmfence1 \
     wget \
     --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* \
+    rm -rf /var/lib/apt/lists/*
 
 # Final stage for app image
-FROM base
+ENV CHROME_PATH="/usr/bin/chromium"
 
 # Copy built application
 COPY --from=build /app /app
