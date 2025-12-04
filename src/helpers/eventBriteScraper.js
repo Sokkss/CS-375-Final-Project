@@ -4,8 +4,9 @@ const cheerio = require('cheerio');
 const puppeteer = require('puppeteer');
 const Event = require('../models/Event');
 const { getLatLong } = require('./geoEncoder');
+const { parseDateString } = require('../utils/dateParser');
 
-(async () => {
+async function fetchEventbriteEvents() {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
     const browser = await puppeteer.launch({ headless: true });
@@ -67,15 +68,22 @@ const { getLatLong } = require('./geoEncoder');
         const locationDescription = item.location;
         const lat = item.lat;
         const long = item.long;
-        const time = item.date;
+        
+        const time = parseDateString(item.date);
+
+        if (!time) {
+            return null;
+        }
+        
         const owner = 'Eventbrite';
         const image = null;
         const externalLink = item.description;
         
         return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
-    });
+    }).filter(event => event !== null);
 
-    //console.log(mappedEvents);
     await browser.close();
     return mappedEvents;
-})();
+}
+
+module.exports = fetchEventbriteEvents;

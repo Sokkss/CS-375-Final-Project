@@ -3,8 +3,9 @@ const cheerio = require('cheerio');
 const Event = require('../models/Event');
 const axios = require('axios');
 const { getLatLong } = require('./geoEncoder');
+const { parseDateString } = require('../utils/dateParser');
 
-(async () => {
+async function fetchVisitPhillyEvents() {
     const url = 'https://www.visitphilly.com/uwishunu/things-to-do-in-philadelphia-this-week-weekend/';
     const response = await axios.get(url);
 
@@ -111,14 +112,21 @@ const { getLatLong } = require('./geoEncoder');
         const locationDescription = item.location;
         const lat = item.lat;
         const long = item.long;
-        const time = item.date;
+
+        const time = parseDateString(item.date);
+
+        if (!time) {
+            return null;
+        }
+        
         const owner = 'Visit Philadelphia';
         const image = null;
         const externalLink = null;
         
         return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
-    });
+    }).filter(event => event !== null);
 
-    //console.log(mappedEvents);
     return mappedEvents;
-})();
+}
+
+module.exports = fetchVisitPhillyEvents;

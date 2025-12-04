@@ -281,6 +281,8 @@ function createEventCard(event) {
     rsvpP.id = `rsvp-count-${event.id}`;
     rsvpP.textContent = '👥 Loading attendees...';
     rsvpContainer.appendChild(rsvpP);
+    
+    fetchRSVPCount(event.id);
 
     // RSVP button (only show if user is logged in and not the owner)
     if (currentUser && currentUser !== event.owner) {
@@ -292,8 +294,8 @@ function createEventCard(event) {
         rsvpContainer.appendChild(rsvpBtn);
     }
 
-    // View attendees button (only for event owner)
-    if (currentUser && currentUser === event.owner) {
+    // View attendees button (only for event owner, not external events)
+    if (currentUser && currentUser === event.owner && !event.isExternal) {
         const viewAttendeesBtn = document.createElement('button');
         viewAttendeesBtn.className = 'bg-green-500 hover:bg-green-600 text-gray-900 text-xs py-1 px-3 rounded mt-1';
         viewAttendeesBtn.textContent = 'View Attendees';
@@ -302,9 +304,6 @@ function createEventCard(event) {
     }
 
     contentDiv.appendChild(rsvpContainer);
-
-    // Fetch RSVP count
-    fetchRSVPCount(event.id);
 
     // Description (if available)
     if (event.description) {
@@ -324,7 +323,7 @@ function createEventCard(event) {
         contentDiv.appendChild(linkA);
     }
 
-    if (currentUser && currentUser === event.owner) {
+    if (currentUser && currentUser === event.owner && !event.isExternal) {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = 'mt-4 flex gap-2';
         
