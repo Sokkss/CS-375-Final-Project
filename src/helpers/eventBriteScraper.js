@@ -27,7 +27,7 @@ async function fetchEventbriteEvents() {
         const events = $(RESULTS_SELECTOR).children('li, div, article').map((i, event) => {
             const $eventSection = $(event);
             const titleScrape = $eventSection.find('a').attr('aria-label');
-            const title = titleScrape.trim().replace('View ', '');
+            const title = titleScrape ? titleScrape.trim().replace('View ', '') : '';
             const description = $eventSection.find('a').attr('href');
 
             const pClassScrape = $eventSection.find('p');
