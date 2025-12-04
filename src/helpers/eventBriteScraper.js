@@ -2,6 +2,8 @@
 
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer-core');
+const puppeteerExtra = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const Event = require('../models/Event');
 const { getLatLong } = require('./geoEncoder');
 const { parseDateString } = require('../utils/dateParser');
@@ -9,7 +11,9 @@ const { parseDateString } = require('../utils/dateParser');
 async function fetchEventbriteEvents() {
     const BASE_URL = 'https://www.eventbrite.com/d/pa--philadelphia/events--this-weekend/';
 
-    const browser = await puppeteer.launch({ headless: true, executablePath: process.env.CHROME_PATH, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-gpu', '--disable-blink-features=AutomationControlled', '--window-size=1920,1080', '--single-process'] });
+    puppeteerExtra.use(StealthPlugin());
+
+    const browser = await puppeteerExtra.launch({ headless: true, executablePath: process.env.CHROME_PATH, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-extensions', '--disable-gpu', '--disable-blink-features=AutomationControlled', '--window-size=1920,1080', '--single-process'] });
     const page = await browser.newPage();
 
     let formattedEvents = [];
@@ -22,8 +26,6 @@ async function fetchEventbriteEvents() {
         await page.setExtraHTTPHeaders({'Accept-Language': 'en-US,en;q=0.9'});
 
         const RESULTS_SELECTOR = 'ul[class*="SearchResultPanelContentEventCardList-module__eventList"]';
-        const htmlEarly = await page.content();
-        console.log("HTML snapshot:", htmlEarly.slice(0, 2000));
         await page.waitForSelector(RESULTS_SELECTOR, { timeout: 30000 });
 
         const html = await page.content();
@@ -48,8 +50,7 @@ async function fetchEventbriteEvents() {
                     break;
                 }
             }
-
-            console.log(title, date, description, location)
+            
             return {title, date, description, location};
         }).get();
 
