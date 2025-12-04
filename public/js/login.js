@@ -51,6 +51,7 @@ export function login() {
 
             if (event.data.loggedIn && event.data.user?.picture) {
                 updateUserIcon();
+                window.location.reload();
             }
 
             if (event.data.loggedIn) {
@@ -70,6 +71,7 @@ export function logout() {
 
         localStorage.removeItem('profileImage');
         updateUserIcon();
+        window.location.reload();
 
         const calendar = document.getElementById('calendar');
         if (calendar) {
