@@ -11,7 +11,7 @@ async function collectAndStoreExternalEvents(pool) {
     const [seatGeekEvents, visitPhillyEvents, eventbriteEvents] = await Promise.allSettled([
         fetchSeatGeekEvents(),
         fetchVisitPhillyEvents(),
-        fetchEventbriteEvents()
+        // fetchEventbriteEvents()
     ]);
 
     if (seatGeekEvents.status === 'rejected') {
@@ -20,14 +20,10 @@ async function collectAndStoreExternalEvents(pool) {
     if (visitPhillyEvents.status === 'rejected') {
         console.error('Visit Philadelphia error:', visitPhillyEvents.reason);
     }
-    if (eventbriteEvents.status === 'rejected') {
-        console.error('Eventbrite error:', eventbriteEvents.reason);
-    }
     
     const allEvents = [
         ...(seatGeekEvents.status === 'fulfilled' ? seatGeekEvents.value : []),
         ...(visitPhillyEvents.status === 'fulfilled' ? visitPhillyEvents.value : []),
-        ...(eventbriteEvents.status === 'fulfilled' ? eventbriteEvents.value : [])
     ];
     
     let savedCount = 0;
