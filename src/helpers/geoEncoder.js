@@ -1,20 +1,27 @@
 const axios = require('axios');
 
 async function geocodeAddress(address) {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+
     const params = {
         address: address,
-        key: process.env.GOOGLE_MAPS_API_KEY
+        key: apiKey
     };
 
-    const res = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', { params });
-    const data = res.data;
+    try {
+        const res = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', { params });
+        const data = res.data;
 
-    if (data.status === 'OK' && data.results && data.results.length > 0) {
-        const location = data.results[0].geometry.location;
-        return { lat: location.lat, long: location.lng, success: true };
+        if (data.status === 'OK' && data.results && data.results.length > 0) {
+            const location = data.results[0].geometry.location;
+            return { lat: location.lat, long: location.lng, success: true };
+        }
+        
+        return { lat: null, long: null, success: false, status: data.status };
+    } catch (error) {
+        console.error(`Geocoding error for "${address}":`, error.message);
+        return { lat: null, long: null, success: false, error: error.message };
     }
-
-    return { lat: null, long: null, success: false, status: data.status };
 }
 
 function extractAddressPortion(fullString) {
@@ -27,12 +34,6 @@ function extractAddressPortion(fullString) {
 
 async function getLatLong(address) {
     if (!address || typeof address !== 'string' || address.trim().length === 0) {
-        return { lat: null, long: null };
-    }
-
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
-        console.error('GOOGLE_MAPS_API_KEY is not set');
         return { lat: null, long: null };
     }
 
