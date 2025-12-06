@@ -196,13 +196,86 @@ function displayEvents(events) {
     });
 }
 
-// Create an event card element
+
+async function getEventImageUrl(event) {
+    if (event.image) {
+        console.log('Using existing event image:', event.image);
+        return event.image;
+    }
+    
+    const titleWords = (event.title || '').split(/\s+/).slice(0, 3).join(' ');
+    const descWords = (event.description || '').split(/\s+/).slice(0, 5).join(' ');
+    const query = `${titleWords} ${descWords}`.trim().replace(/\s+/g, ' ');
+    
+    if (!query) {
+        console.log('No query generated for event:', event.title);
+        return null;
+    }
+    
+    try {
+        const encodedQuery = encodeURIComponent(query);
+        const url = `/api/event-image?query=${encodedQuery}`;
+        console.log('Fetching image for query:', query, 'URL:', url);
+        
+        const response = await fetch(url);
+        console.log('Image API response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Image API response data:', data);
+            if (data.imageUrl) {
+                return data.imageUrl;
+            }
+        } else {
+            const errorText = await response.text();
+            console.error('Image API error response:', errorText);
+        }
+    } catch (error) {
+        console.error('Image fetch failed, using placeholder:', error);
+    }
+    
+    return null;
+}
+
+
+async function loadEventImage(imageContainer, event) {
+    const imageUrl = await getEventImageUrl(event);
+    
+    if (imageUrl) {
+        console.log('Loading image for event:', event.title, 'URL:', imageUrl);
+        
+        const placeholder = imageContainer.querySelector('.gradient-placeholder');
+        if (!placeholder) {
+            console.log('No placeholder found, cannot load image');
+            return;
+        }
+        
+        const img = document.createElement('img');
+        img.alt = `Image for ${event.title}`;
+        img.className = 'w-full h-52 object-cover';
+        
+        img.onload = () => {
+            console.log('Image loaded successfully for event:', event.title);
+            if (placeholder && placeholder.parentNode) {
+                placeholder.parentNode.replaceChild(img, placeholder);
+            }
+        };
+        
+        img.onerror = (e) => {
+            console.error('Image load failed for URL:', imageUrl, 'keeping placeholder', e);
+        };
+        
+        img.src = imageUrl;
+    } else {
+        console.log('No image URL returned, keeping placeholder for event:', event.title);
+    }
+}
+
 function createEventCard(event) {
     const card = document.createElement('div');
-    card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer';
+    card.className = 'bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:scale-[1.02] hover:border-gray-300 transition-all duration-200 cursor-pointer';
     
     card.onclick = (e) => {
-        // prevent clicking on buttons or links within the card
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) {
             return;
         }
@@ -211,7 +284,6 @@ function createEventCard(event) {
         window.location.href = url;
     };
     
-    // Format date
     const eventDate = new Date(event.time);
     const formattedDate = eventDate.toLocaleDateString('en-US', { 
         weekday: 'short', 
@@ -222,124 +294,174 @@ function createEventCard(event) {
         minute: '2-digit'
     });
     
-        // Create image element
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'relative overflow-hidden';
+    
     if (event.image) {
         const img = document.createElement('img');
         img.src = event.image;
-        img.alt = event.title;
-        img.className = 'w-full h-48 object-cover';
-        card.appendChild(img);
+        img.alt = `Image for ${event.title}`;
+        img.className = 'w-full h-52 object-cover';
+        img.onerror = () => {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'w-full h-52 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400';
+            imageContainer.replaceChild(placeholder, img);
+        };
+        imageContainer.appendChild(img);
     } else {
-        const placeholderDiv = document.createElement('div');
-        placeholderDiv.className = 'w-full h-48 bg-gradient-to-r from-blue-400 to-purple-500';
-        card.appendChild(placeholderDiv);
+        const placeholder = document.createElement('div');
+        placeholder.className = 'w-full h-52 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 gradient-placeholder';
+        imageContainer.appendChild(placeholder);
+        
+        loadEventImage(imageContainer, event);
     }
+    
+    card.appendChild(imageContainer);
 
-    // Create content container
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'p-4';
+    contentDiv.className = 'p-6';
 
-    // Title
     const titleH3 = document.createElement('h3');
-    titleH3.className = 'font-bold text-xl mb-2 text-gray-800';
+    titleH3.className = 'text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight';
     titleH3.textContent = event.title;
     contentDiv.appendChild(titleH3);
 
-    // Location
-    const locationP = document.createElement('p');
-    locationP.className = 'text-gray-600 text-sm mb-2';
-    locationP.textContent = `📍 ${event.locationDescription || event.location || 'Location not specified'}`;
-    contentDiv.appendChild(locationP);
+    const metadataContainer = document.createElement('div');
+    metadataContainer.className = 'space-y-2.5 mb-4';
+    
+    const dateRow = document.createElement('div');
+    dateRow.className = 'flex items-center text-sm text-gray-700';
+    dateRow.innerHTML = `
+        <svg class="w-4 h-4 mr-2.5 flex-shrink-0 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+        </svg>
+        <span class="font-semibold text-gray-800">${formattedDate}</span>
+    `;
+    metadataContainer.appendChild(dateRow);
+    
+    const locationRow = document.createElement('div');
+    locationRow.className = 'flex items-start text-sm text-gray-700';
+    locationRow.innerHTML = `
+        <svg class="w-4 h-4 mr-2.5 mt-0.5 flex-shrink-0 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+        </svg>
+        <span class="line-clamp-1 text-gray-700">${event.locationDescription || event.location || 'Location not specified'}</span>
+    `;
+    metadataContainer.appendChild(locationRow);
+    
+    contentDiv.appendChild(metadataContainer);
 
-    // Coordinates (if available)
-    if (event.lat && event.long) {
-        const coordP = document.createElement('p');
-        coordP.className = 'text-gray-500 text-xs mb-2';
-        coordP.textContent = `📍 Coordinates: ${parseFloat(event.lat).toFixed(6)}, ${parseFloat(event.long).toFixed(6)}`;
-        contentDiv.appendChild(coordP);
-    }
-
-    // Date
-    const dateP = document.createElement('p');
-    dateP.className = 'text-gray-600 text-sm mb-2';
-    dateP.textContent = `📅 ${formattedDate}`;
-    contentDiv.appendChild(dateP);
-
-    // Owner
-    const ownerP = document.createElement('p');
-    ownerP.className = 'text-gray-600 text-sm mb-2';
-    ownerP.textContent = `👤 Created by ${event.owner}`;
-    contentDiv.appendChild(ownerP);
-
-    // RSVP section container
-    const rsvpContainer = document.createElement('div');
-    rsvpContainer.className = 'mb-2';
-
-    // RSVP count
-    const rsvpP = document.createElement('p');
-    rsvpP.className = 'text-gray-600 text-sm mb-1';
-    rsvpP.id = `rsvp-count-${event.id}`;
-    rsvpP.textContent = '👥 Loading attendees...';
-    rsvpContainer.appendChild(rsvpP);
+    // Secondary metadata bar (Owner & Attendees) - refined styling
+    const secondaryBar = document.createElement('div');
+    secondaryBar.className = 'flex items-center justify-between py-3 mb-4 border-t border-gray-200';
+    
+    const ownerDiv = document.createElement('div');
+    ownerDiv.className = 'flex items-center text-xs text-gray-600';
+    ownerDiv.innerHTML = `
+        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+        <span class="text-gray-600">${event.owner}</span>
+    `;
+    
+    const attendeesDiv = document.createElement('div');
+    attendeesDiv.className = 'flex items-center text-xs text-gray-600';
+    attendeesDiv.id = `rsvp-count-${event.id}`;
+    attendeesDiv.innerHTML = `
+        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+        </svg>
+        <span class="font-medium text-gray-700">Loading...</span>
+    `;
+    
+    secondaryBar.appendChild(ownerDiv);
+    secondaryBar.appendChild(attendeesDiv);
+    contentDiv.appendChild(secondaryBar);
     
     fetchRSVPCount(event.id);
 
-    // RSVP button (only show if user is logged in and not the owner)
-    if (currentUser && currentUser !== event.owner) {
-        const rsvpBtn = document.createElement('button');
-        rsvpBtn.className = 'bg-blue-500 hover:bg-blue-600 text-gray-900 text-xs py-1 px-3 rounded mt-1';
-        rsvpBtn.textContent = 'RSVP to Event';
-        rsvpBtn.id = `rsvp-btn-${event.id}`;
-        rsvpBtn.onclick = () => handleRSVP(event.id);
-        rsvpContainer.appendChild(rsvpBtn);
-    }
-
-    // View attendees button (only for event owner, not external events)
-    if (currentUser && currentUser === event.owner && !event.isExternal) {
-        const viewAttendeesBtn = document.createElement('button');
-        viewAttendeesBtn.className = 'bg-green-500 hover:bg-green-600 text-gray-900 text-xs py-1 px-3 rounded mt-1';
-        viewAttendeesBtn.textContent = 'View Attendees';
-        viewAttendeesBtn.onclick = () => showAttendees(event.id, event.title);
-        rsvpContainer.appendChild(viewAttendeesBtn);
-    }
-
-    contentDiv.appendChild(rsvpContainer);
-
-    // Description (if available)
+    // Description (if available) - refined styling
     if (event.description) {
         const descP = document.createElement('p');
-        descP.className = 'text-gray-700 text-sm mt-3';
+        descP.className = 'text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed';
         descP.textContent = event.description;
         contentDiv.appendChild(descP);
     }
 
-    // External link (if available)
-    if (event.external_link || event.externalLink) {
-        const linkA = document.createElement('a');
-        linkA.href = event.external_link || event.externalLink;
-        linkA.target = '_blank';
-        linkA.className = 'inline-block mt-3 text-blue-500 hover:text-blue-700 text-sm';
-        linkA.textContent = 'View Details →';
-        contentDiv.appendChild(linkA);
+    // Actions section - refined spacing and visual separation
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'flex items-center gap-2.5 pt-4 border-t border-gray-200';
+    
+    // RSVP button (only if logged in & not owner) - primary CTA
+    if (currentUser && currentUser !== event.owner) {
+        const rsvpBtn = document.createElement('button');
+        rsvpBtn.className = 'flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-all duration-150 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2';
+        rsvpBtn.textContent = 'RSVP to Event';
+        rsvpBtn.id = `rsvp-btn-${event.id}`;
+        rsvpBtn.onclick = (e) => {
+            e.stopPropagation();
+            handleRSVP(event.id);
+        };
+        actionsDiv.appendChild(rsvpBtn);
+    }
+    
+    // View Attendees button (owner only, not external) - secondary action
+    if (currentUser && currentUser === event.owner && !event.isExternal) {
+        const viewBtn = document.createElement('button');
+        viewBtn.className = 'flex-1 border border-gray-300 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 text-gray-700 text-sm font-medium py-2.5 px-4 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2';
+        viewBtn.textContent = 'View Attendees';
+        viewBtn.onclick = (e) => {
+            e.stopPropagation();
+            showAttendees(event.id, event.title);
+        };
+        actionsDiv.appendChild(viewBtn);
+    }
+    
+    if (actionsDiv.children.length > 0) {
+        contentDiv.appendChild(actionsDiv);
     }
 
+    // Owner actions (Edit/Delete) - refined styling with better spacing
     if (currentUser && currentUser === event.owner && !event.isExternal) {
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'mt-4 flex gap-2';
+        const ownerActions = document.createElement('div');
+        ownerActions.className = 'flex items-center gap-2.5 mt-3';
         
         const editBtn = document.createElement('button');
-        editBtn.className = 'bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-sm py-2 px-4 rounded';
+        editBtn.className = 'flex-1 border border-amber-300 hover:border-amber-400 hover:bg-amber-50 active:bg-amber-100 text-amber-700 text-sm font-medium py-2 px-4 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2';
         editBtn.textContent = 'Edit Event';
-        editBtn.onclick = () => editEvent(event);
-        buttonContainer.appendChild(editBtn);
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            editEvent(event);
+        };
+        ownerActions.appendChild(editBtn);
         
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'bg-red-500 hover:bg-red-600 text-gray-900 text-sm py-2 px-4 rounded';
+        deleteBtn.className = 'flex-1 border border-red-300 hover:border-red-400 hover:bg-red-50 active:bg-red-100 text-red-700 text-sm font-medium py-2 px-4 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
         deleteBtn.textContent = 'Delete Event';
-        deleteBtn.onclick = () => deleteEventConfirm(event.id, event.title);
-        buttonContainer.appendChild(deleteBtn);
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteEventConfirm(event.id, event.title);
+        };
+        ownerActions.appendChild(deleteBtn);
         
-        contentDiv.appendChild(buttonContainer);
+        contentDiv.appendChild(ownerActions);
+    }
+
+    // External link (if available) - refined styling
+    if (event.external_link || event.externalLink) {
+        const link = document.createElement('a');
+        link.href = event.external_link || event.externalLink;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 font-medium mt-4 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded';
+        link.innerHTML = `
+            View External Details
+            <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+        `;
+        link.onclick = (e) => e.stopPropagation();
+        contentDiv.appendChild(link);
     }
 
     card.appendChild(contentDiv);
@@ -356,13 +478,23 @@ async function fetchRSVPCount(eventId) {
         const rsvpElement = document.getElementById(`rsvp-count-${eventId}`);
         if (rsvpElement) {
             const count = data.count || 0;
-            rsvpElement.textContent = `👥 ${count} attendee${count !== 1 ? 's' : ''}`;
+            rsvpElement.innerHTML = `
+                <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                </svg>
+                <span class="font-medium text-gray-700">${count} attending</span>
+            `;
         }
     } catch (error) {
         console.error('Error fetching RSVP count:', error);
         const rsvpElement = document.getElementById(`rsvp-count-${eventId}`);
         if (rsvpElement) {
-            rsvpElement.textContent = '👥 Attendees unavailable';
+            rsvpElement.innerHTML = `
+                <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                </svg>
+                <span class="font-medium text-gray-500">—</span>
+            `;
         }
     }
 }

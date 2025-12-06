@@ -29,6 +29,9 @@ function createRoutes(pool) {
     // External events (seatgeek + visitphilly + eventbrite)
     router.post('/api/events/collect-external', (req, res) => externalEventController.collectExternalEvents(req, res, pool));
 
+    // Event image endpoint (for dynamic stock images)
+    router.get('/api/event-image', (req, res) => eventController.getEventImage(req, res));
+
     // Google OAuth + calendar
     router.get('/auth/google', (req, res) => googleAuthController.getGoogleAuth(req, res));
     router.get('/auth/google/callback', (req, res) => googleAuthController.getGoogleAuthCallback(req, res));
@@ -37,16 +40,17 @@ function createRoutes(pool) {
     router.get('/profile', (req, res) => googleAuthController.getProfile(req, res));
     router.get('/api/calendar/embed', (req, res) => googleAuthController.getCalendar(req, res));
     router.get("/auth/close", (req, res) => {
-        const picture = req.session?.user?.profile?.picture || null;
+        const user = req.session?.user || null;
+        const loggedIn = !!user;
+        const picture = user?.profile?.picture || null;
 
+        // Only signal success to the opener if the session was actually created.
+        // Otherwise notify the opener that authentication failed so it doesn't
+        // reload expecting a logged-in state.
         res.send(`
             <script>
                 window.opener.postMessage(
-                    {
-                        loggedIn: true,
-                        redirectUrl: "/",
-                        user: { picture: "${picture}" }
-                    },
+                    ${loggedIn ? `{ loggedIn: true, redirectUrl: "/", user: { picture: "${picture}" } }` : `{ loggedIn: false }`},
                     window.location.origin
                 );
                 window.close();
