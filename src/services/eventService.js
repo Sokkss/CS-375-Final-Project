@@ -200,6 +200,78 @@ async function getEventAttendees(pool, eventId) {
     }
 }
 
+function getEventsByOwner(pool, owner) {
+    let query = 'SELECT * FROM events WHERE owner = $1 ORDER BY time ASC';
+    
+    return pool.query(query, [owner])
+        .then(result => {
+            return result.rows.map(row => {
+                let event = new Event(
+                    row.id,
+                    row.title,
+                    row.description,
+                    row.location_description,
+                    row.lat,
+                    row.long,
+                    row.time,
+                    row.owner,
+                    row.image,
+                    row.external_link
+                );
+                event.isExternal = row.is_external || false;
+                return event;
+            });
+        })
+        .catch(error => {
+            console.error('Error getting events by owner:', error);
+            throw error;
+        });
+}
+
+function getRsvpedEvents(pool, userId) {
+    let query = `
+        SELECT events.*, (
+            SELECT created_at 
+            FROM rsvps 
+            WHERE user_id = $1 AND event_id = events.id
+            ORDER BY created_at DESC
+            LIMIT 1
+        ) AS rsvp_created_at
+        FROM events
+        WHERE id IN (
+            SELECT event_id 
+            FROM rsvps 
+            WHERE user_id = $1
+        )
+        ORDER BY time ASC
+    `;
+    
+    return pool.query(query, [userId])
+        .then(result => {
+            return result.rows.map(row => {
+                let event = new Event(
+                    row.id,
+                    row.title,
+                    row.description,
+                    row.location_description,
+                    row.lat,
+                    row.long,
+                    row.time,
+                    row.owner,
+                    row.image,
+                    row.external_link
+                );
+                event.isExternal = row.is_external || false;
+                event.rsvpCreatedAt = row.rsvp_created_at || null;
+                return event;
+            });
+        })
+        .catch(error => {
+            console.error('Error getting rsvp events:', error);
+            throw error;
+        });
+}
+
 function searchEvents(pool, searchFilters) {
     let query = 'SELECT * FROM events WHERE';
     
@@ -268,5 +340,7 @@ module.exports = {
     addRSVP,
     removeRSVP,
     getEventAttendees,
+    getEventsByOwner,
+    getRsvpedEvents,
     searchEvents
 };
