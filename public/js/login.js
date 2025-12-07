@@ -50,7 +50,6 @@ export function login() {
             if (event.origin !== window.location.origin) return;
 
             if (event.data.loggedIn && event.data.user?.picture) {
-                updateUserIcon();
                 window.location.reload();
             }
 
@@ -68,19 +67,7 @@ export function logout() {
 
     logoutButton.addEventListener('click', async () => {
         await fetch('/auth/logout', { credentials: 'include' });
-
-        localStorage.removeItem('profileImage');
-        updateUserIcon();
         window.location.reload();
-
-        const calendar = document.getElementById('calendar');
-        if (calendar) {
-            calendar.textContent = '';
-            const errorMessage = document.createElement('p');
-            errorMessage.textContent = 'You must be logged in to view the calendar.';
-            errorMessage.classList.add('font-semibold', 'text-center', 'mt-4');
-            calendar.appendChild(errorMessage);
-        }
     });
 }
 

@@ -64,7 +64,7 @@ async function getGoogleAuthCallback(req, res) {
         }
         };
 
-        req.session.save((err) => {
+        await req.session.save((err) => {
             if (err) console.error('Session save error:', err);
             return res.redirect('/auth/close');
         });
