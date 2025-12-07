@@ -37,6 +37,7 @@ function createRoutes(pool) {
     router.get('/auth/google/callback', (req, res) => googleAuthController.getGoogleAuthCallback(req, res));
     router.get('/auth/logout', (req, res) => googleAuthController.getLogout(req, res));
     router.get('/api/user', (req, res) => googleAuthController.getUser(req, res));
+    router.get('/api/user/events-summary', (req, res) => eventController.getUserEventSummary(req, res, pool));
     router.get('/profile', (req, res) => googleAuthController.getProfile(req, res));
     router.get('/api/calendar/embed', (req, res) => googleAuthController.getCalendar(req, res));
     router.get("/auth/close", (req, res) => {

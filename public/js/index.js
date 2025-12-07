@@ -1,3 +1,23 @@
+import { getUserProfile } from './utils/user.js';
+
+let userGreeting = document.getElementById('userGreeting');
+let userStatus = document.getElementById('userStatus');
+let upcomingSection = document.getElementById('upcomingSection');
+let rsvpSection = document.getElementById('rsvpSection');
+let upcomingEventsList = document.getElementById('upcomingEventsList');
+let rsvpEventsList = document.getElementById('rsvpEventsList');
+let upcomingEmptyState = document.getElementById('upcomingEmptyState');
+let rsvpEmptyState = document.getElementById('rsvpEmptyState');
+let userProfileState = { isLoggedIn: false, data: null };
+
+function clearNode(node) {
+    if (!node) {
+        return;
+    }
+    while (node.firstChild) {
+        node.removeChild(node.firstChild);
+    }
+}
 
 // citation: https://developers.google.com/maps/documentation/javascript/adding-a-google-map
 (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
@@ -137,6 +157,219 @@ function addMarkers(events) {
     }
 }
 
+function loadUserSummary() {
+    if (!userGreeting || !userStatus) {
+        return;
+    }
+    
+    getUserProfile()
+        .then(profile => {
+            if (profile.authenticated && profile.user) {
+                userProfileState.isLoggedIn = true;
+                userProfileState.data = profile.user;
+                let firstName = profile.user.name ? profile.user.name.split(' ')[0] : 'there';
+                userGreeting.textContent = `Welcome back, ${firstName}`;
+                userStatus.textContent = 'Here is what is coming up plus what you are attending next.';
+                if (rsvpSection) {
+                    rsvpSection.classList.remove('hidden');
+                }
+                clearUserLists();
+                fetchUpcomingEvents();
+                fetchUserEventSummary();
+            } else {
+                userProfileState.isLoggedIn = false;
+                userProfileState.data = null;
+                userGreeting.textContent = 'Sign in to personalize';
+                userStatus.textContent = 'Browse events happening in Philly anytime. Sign in to keep track of your RSVPs.';
+                if (rsvpSection) {
+                    rsvpSection.classList.add('hidden');
+                }
+                clearUserLists({ upcoming: false, rsvp: true });
+            }
+        })
+        .catch(() => {
+            if (rsvpSection) {
+                rsvpSection.classList.add('hidden');
+            }
+            userStatus.textContent = 'Unable to load your personalized feed right now.';
+        });
+}
+
+function fetchUpcomingEvents() {
+    if (!upcomingEventsList || !upcomingEmptyState) {
+        return;
+    }
+    
+    fetch('/api/events', { cache: 'no-store' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load events');
+            }
+            return response.json();
+        })
+        .then(data => {
+            let events = Array.isArray(data.events) ? data.events : [];
+            let now = Date.now();
+            let upcoming = events.filter(event => {
+                if (!event.time) {
+                    return false;
+                }
+                let eventDate = new Date(event.time);
+                return !Number.isNaN(eventDate.getTime()) && eventDate.getTime() >= now;
+            });
+            upcoming.sort((a, b) => {
+                let firstTime = new Date(a.time).getTime();
+                let secondTime = new Date(b.time).getTime();
+                return firstTime - secondTime;
+            });
+            renderUserSection(upcomingEventsList, upcomingEmptyState, upcoming, 'No upcoming events right now. Check back soon.', 'general');
+        })
+        .catch(() => {
+            clearNode(upcomingEventsList);
+            if (upcomingEmptyState) {
+                upcomingEmptyState.textContent = 'Unable to load upcoming events.';
+            }
+        });
+}
+
+function fetchUserEventSummary() {
+    if (!userProfileState.isLoggedIn) {
+        return;
+    }
+    
+    fetch('/api/user/events-summary', { credentials: 'include', cache: 'no-store' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load user events');
+            }
+            return response.json();
+        })
+        .then(data => {
+            renderUserSection(rsvpEventsList, rsvpEmptyState, data.rsvpEvents, 'RSVP to an event to see it here.', 'rsvp');
+        })
+        .catch(() => {
+            if (userStatus) {
+                userStatus.textContent = 'Unable to refresh your personalized feed.';
+            }
+        });
+}
+
+function renderUserSection(listNode, emptyNode, events, emptyMessage, type) {
+    if (!listNode || !emptyNode) {
+        return;
+    }
+    
+    clearNode(listNode);
+    
+    if (!events || events.length === 0) {
+        emptyNode.textContent = emptyMessage;
+        return;
+    }
+    
+    emptyNode.textContent = '';
+    
+    let limitedEvents = events.slice(0, 4);
+    for (let event of limitedEvents) {
+        listNode.appendChild(createUserCard(event, type));
+    }
+}
+
+function createUserCard(event, type) {
+    let card = document.createElement('div');
+    card.className = 'border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors duration-200';
+    
+    let title = document.createElement('p');
+    title.className = 'text-base font-semibold text-gray-900';
+    title.textContent = event.title || 'Untitled event';
+    card.appendChild(title);
+    
+    let date = document.createElement('p');
+    date.className = 'text-sm text-gray-600 mt-1';
+    date.textContent = formatEventDate(event.time);
+    card.appendChild(date);
+    
+    let location = document.createElement('p');
+    location.className = 'text-xs text-gray-500 mt-1';
+    location.textContent = event.locationDescription || event.location || 'Location coming soon';
+    card.appendChild(location);
+    
+    let footer = document.createElement('div');
+    footer.className = 'mt-3 flex items-center justify-between text-sm';
+    
+    let badge = document.createElement('span');
+    let badgeClass = 'text-xs font-semibold uppercase tracking-wide';
+    let badgeColor = 'text-blue-600';
+    let badgeText = 'Hosted by you';
+    
+    if (type === 'rsvp') {
+        badgeColor = 'text-green-600';
+        badgeText = 'RSVP\'d';
+    } else if (type === 'general') {
+        badgeColor = 'text-blue-600';
+        badgeText = 'Not RSVP\'d';
+    }
+    
+    badge.className = `${badgeClass} ${badgeColor}`;
+    badge.textContent = badgeText;
+    footer.appendChild(badge);
+    
+    let link = document.createElement('a');
+    link.href = `/pages/event-details.html?id=${event.id}`;
+    link.className = 'text-blue-600 font-semibold';
+    link.textContent = 'View';
+    footer.appendChild(link);
+    
+    card.appendChild(footer);
+    
+    return card;
+}
+
+function formatEventDate(dateValue) {
+    if (!dateValue) {
+        return 'Date coming soon';
+    }
+    
+    let parsedDate = new Date(dateValue);
+    
+    if (Number.isNaN(parsedDate.getTime())) {
+        return 'Date coming soon';
+    }
+    
+    return parsedDate.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
+}
+
+function clearUserLists(options) {
+    let config = { upcoming: true, rsvp: true };
+    
+    if (options && typeof options === 'object') {
+        if (options.upcoming !== undefined) {
+            config.upcoming = options.upcoming;
+        }
+        if (options.rsvp !== undefined) {
+            config.rsvp = options.rsvp;
+        }
+    }
+    
+    if (config.upcoming && upcomingEventsList) {
+        clearNode(upcomingEventsList);
+    }
+    if (config.rsvp && rsvpEventsList) {
+        clearNode(rsvpEventsList);
+    }
+    if (config.upcoming && upcomingEmptyState) {
+        upcomingEmptyState.textContent = '';
+    }
+    if (config.rsvp && rsvpEmptyState) {
+        rsvpEmptyState.textContent = '';
+    }
+}
+
 export function updateMapMarkers(events) {
     if (!map || !window.PinElement) {
         return;
@@ -145,8 +378,14 @@ export function updateMapMarkers(events) {
     addMarkers(events);
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => initMap('map'));
-} else {
+function bootHome() {
     initMap('map');
+    fetchUpcomingEvents();
+    loadUserSummary();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootHome);
+} else {
+    bootHome();
 }

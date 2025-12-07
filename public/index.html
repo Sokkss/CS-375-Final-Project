@@ -10,7 +10,9 @@
 <body class="bg-gray-100 min-h-screen">
 <nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-2 bg-[#f6eedc] shadow-sm">
     <div>
-        <img alt="Logo" class="h-10 w-auto object-contain" src="images/phillyily-logo.png">
+        <a class="inline-flex items-center" href="index.html">
+            <img alt="Logo" class="h-10 w-auto object-contain" src="images/phillyily-logo.png">
+        </a>
     </div>
     <div class="flex space-x-6 text-sm">
         <a class="font-bold text-blue-600" href="index.html">Home</a>
@@ -32,10 +34,36 @@
 </div>
 </nav>
 
-<div class="container mx-auto px-4 py-8 pt-20">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">Events in Philadelphia</h1>
-    <div id="map" style="height: 600px; width: 100%; border-radius: 8px;"></div>
-</div>
+<main class="pt-20 pb-12">
+    <section class="container mx-auto px-4">
+        <div class="grid grid-cols-3 gap-6">
+            <div class="col-span-2">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900">Event Map</h2>
+                    <p class="text-gray-600 text-sm mb-4">Zoom into the map and tap a pin to open details.</p>
+                    <div id="map" class="h-[600px] w-full rounded-xl border border-gray-200 overflow-hidden"></div>
+                </div>
+            </div>
+            <div class="col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <p class="text-xs uppercase tracking-wide text-blue-500 mb-1">Your planner</p>
+                    <h2 id="userGreeting" class="text-2xl font-semibold text-gray-900">Sign in to personalize</h2>
+                    <p id="userStatus" class="text-gray-600 text-sm mb-4">Browse events happening in Philly anytime. Sign in to keep track of your RSVPs.</p>
+                    <div id="upcomingSection" class="border-t border-gray-200 pt-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Upcoming events in Philly</h3>
+                        <div id="upcomingEventsList" class="space-y-4"></div>
+                        <p id="upcomingEmptyState" class="text-sm text-gray-500"></p>
+                    </div>
+                    <div id="rsvpSection" class="hidden border-t border-gray-200 pt-4 mt-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Events you're attending</h3>
+                        <div id="rsvpEventsList" class="space-y-4"></div>
+                        <p id="rsvpEmptyState" class="text-sm text-gray-500"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
 
 <script src="js/index.js" type="module"></script>
 <script src="js/login.js" type="module"></script>

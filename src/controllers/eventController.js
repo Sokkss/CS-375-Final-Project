@@ -268,6 +268,35 @@ function searchEvents(req, res, pool) {
         });
 }
 
+function getUserEventSummary(req, res, pool) {
+    let sessionUser;
+    
+    if (req.session && req.session.user && req.session.user.profile && req.session.user.profile.name) {
+        sessionUser = req.session.user.profile.name;
+    } else {
+        sessionUser = null;
+    }
+    
+    if (!sessionUser) {
+        res.status(401);
+        return res.json({ error: 'Not authenticated' });
+    }
+    
+    let ownedPromise = eventService.getEventsByOwner(pool, sessionUser);
+    let rsvpPromise = eventService.getRsvpedEvents(pool, sessionUser);
+    
+    return Promise.all([ownedPromise, rsvpPromise])
+        .then(([createdEvents, rsvpEvents]) => {
+            res.status(200);
+            return res.json({ createdEvents, rsvpEvents });
+        })
+        .catch(error => {
+            console.error('Error in getUserEventSummary controller:', error);
+            res.status(500);
+            return res.json({ error: 'Failed to load user events' });
+        });
+}
+
 
 // Get dynamic event image URL based on search query
 async function getEventImage(req, res) {
@@ -313,5 +342,6 @@ module.exports = {
     cancelRSVP,
     getEventAttendees,
     searchEvents,
-    getEventImage
+    getEventImage,
+    getUserEventSummary
 };
