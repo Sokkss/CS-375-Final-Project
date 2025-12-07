@@ -15,9 +15,10 @@ let currentUserEmail = null;
 // Fetch logged-in user from session
 async function fetchCurrentUser() {
     try {
-        const response = await fetch('/api/user');
+        const response = await fetch('/api/user', { 
+            credentials: 'include' 
+        });
         const data = await response.json();
-        
         if (data.authenticated && data.user) {
             currentUser = data.user.name;
             currentUserEmail = data.user.email;
@@ -49,6 +50,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Show/Hide create event form
 toggleFormBtn.addEventListener('click', () => {
+    // Check if user is logged in immediately
+    if (!currentUser) {
+        showMessage('Please log in to create events', 'error');
+        return;
+    }
+    
     createEventForm.classList.remove('hidden');
     toggleFormBtn.classList.add('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
