@@ -9,7 +9,6 @@ let rsvpEventsList = document.getElementById('rsvpEventsList');
 let upcomingEmptyState = document.getElementById('upcomingEmptyState');
 let rsvpEmptyState = document.getElementById('rsvpEmptyState');
 let userProfileState = { isLoggedIn: false, data: null };
-let rsvpEventIds = new Set();
 
 function clearNode(node) {
     if (!node) {
@@ -175,6 +174,7 @@ function loadUserSummary() {
                     rsvpSection.classList.remove('hidden');
                 }
                 clearUserLists();
+                fetchUpcomingEvents();
                 fetchUserEventSummary();
             } else {
                 userProfileState.isLoggedIn = false;
@@ -215,13 +215,7 @@ function fetchUpcomingEvents() {
                     return false;
                 }
                 let eventDate = new Date(event.time);
-                if (Number.isNaN(eventDate.getTime()) || eventDate.getTime() < now) {
-                    return false;
-                }
-                if (userProfileState.isLoggedIn && rsvpEventIds.has(event.id)) {
-                    return false;
-                }
-                return true;
+                return !Number.isNaN(eventDate.getTime()) && eventDate.getTime() >= now;
             });
             upcoming.sort((a, b) => {
                 let firstTime = new Date(a.time).getTime();
@@ -251,15 +245,7 @@ function fetchUserEventSummary() {
             return response.json();
         })
         .then(data => {
-            rsvpEventIds.clear();
-            let rsvpEvents = data.rsvpEvents || [];
-            for (let event of rsvpEvents) {
-                if (event.id) {
-                    rsvpEventIds.add(event.id);
-                }
-            }
-            renderUserSection(rsvpEventsList, rsvpEmptyState, rsvpEvents, 'RSVP to an event to see it here.', 'rsvp');
-            fetchUpcomingEvents();
+            renderUserSection(rsvpEventsList, rsvpEmptyState, data.rsvpEvents, 'RSVP to an event to see it here.', 'rsvp');
         })
         .catch(() => {
             if (userStatus) {
@@ -375,7 +361,6 @@ function clearUserLists(options) {
     }
     if (config.rsvp && rsvpEventsList) {
         clearNode(rsvpEventsList);
-        rsvpEventIds.clear();
     }
     if (config.upcoming && upcomingEmptyState) {
         upcomingEmptyState.textContent = '';
