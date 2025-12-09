@@ -83,18 +83,6 @@ function hideForm() {
 
 let geocodeBtn = document.getElementById('geocodeBtn');
 let geocodeStatus = document.getElementById('geocodeStatus');
-let geocoder = null;
-
-function initGeocoder() {
-    if (geocoder) {
-        return Promise.resolve(geocoder);
-    }
-    
-    return google.maps.importLibrary("geocoding").then(function(lib) {
-        geocoder = new lib.Geocoder();
-        return geocoder;
-    });
-}
 
 if (geocodeBtn) {
     geocodeBtn.addEventListener('click', function() {
@@ -109,20 +97,24 @@ if (geocodeBtn) {
         geocodeBtn.textContent = 'Looking up...';
         geocodeStatus.textContent = '';
         
-        initGeocoder()
-            .then(function(gc) {
-                return gc.geocode({ address: address });
-            })
+        let encodedAddress = encodeURIComponent(address);
+        let apiKey = 'AIzaSyB6Vvh_yRrn-AI4tQSxz60pF67yPKmOEhI';
+        let url = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + encodedAddress + '&key=' + apiKey;
+        
+        fetch(url)
             .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
                 geocodeBtn.disabled = false;
                 geocodeBtn.textContent = 'Look Up';
                 
-                if (response.results && response.results.length > 0) {
-                    let location = response.results[0].geometry.location;
-                    document.getElementById('lat').value = location.lat();
-                    document.getElementById('long').value = location.lng();
+                if (data.status === 'OK' && data.results && data.results.length > 0) {
+                    let location = data.results[0].geometry.location;
+                    document.getElementById('lat').value = location.lat;
+                    document.getElementById('long').value = location.lng;
                     
-                    let formattedAddress = response.results[0].formatted_address;
+                    let formattedAddress = data.results[0].formatted_address;
                     geocodeStatus.textContent = '\u2713 Found: ' + formattedAddress;
                     geocodeStatus.className = 'text-sm mt-1 text-green-600';
                 } else {
@@ -134,7 +126,7 @@ if (geocodeBtn) {
                 console.error('Geocoding error:', error);
                 geocodeBtn.disabled = false;
                 geocodeBtn.textContent = 'Look Up';
-                geocodeStatus.textContent = 'Could not find location. Try a more specific address.';
+                geocodeStatus.textContent = 'Error looking up address. Please try again.';
                 geocodeStatus.className = 'text-sm mt-1 text-red-500';
             });
     });
@@ -310,7 +302,7 @@ function createEventCard(event) {
         placeholder.className = 'w-full h-52 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400';
         imageContainer.appendChild(placeholder);
     }
-    
+
     card.appendChild(imageContainer);
 
     const contentDiv = document.createElement('div');
@@ -399,7 +391,7 @@ function createEventCard(event) {
         };
         actionsDiv.appendChild(rsvpBtn);
     }
-    
+
     // View Attendees button (owner only, not external) - secondary action
     if (currentUser && currentUser === event.owner && !event.isExternal) {
         const viewBtn = document.createElement('button');
@@ -411,7 +403,7 @@ function createEventCard(event) {
         };
         actionsDiv.appendChild(viewBtn);
     }
-    
+
     if (actionsDiv.children.length > 0) {
         contentDiv.appendChild(actionsDiv);
     }
