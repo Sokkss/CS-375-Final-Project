@@ -206,7 +206,6 @@ function setupViewAttendeesButton(eventOwner) {
     let attendeesListContainer = document.getElementById('attendeesListContainer');
     let closeAttendeesListBtn = document.getElementById('closeAttendeesListBtn');
     let copyEmailsBtn = document.getElementById('copyEmailsBtn');
-    let emailAllBtn = document.getElementById('emailAllBtn');
     
     if (!currentUser || currentUser !== eventOwner) {
         return;
@@ -270,19 +269,6 @@ function setupViewAttendeesButton(eventOwner) {
         setTimeout(function() {
             copyEmailsBtn.textContent = originalText;
         }, 2000);
-    };
-    
-    emailAllBtn.onclick = function() {
-        let emails = [];
-        currentEventAttendees.forEach(function(attendee) {
-            if (attendee.email) {
-                emails.push(attendee.email);
-            }
-        });
-        
-        if (emails.length > 0) {
-            window.location.href = 'mailto:' + emails.join(',');
-        }
     };
 }
 
