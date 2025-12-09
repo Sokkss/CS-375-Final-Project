@@ -137,7 +137,7 @@ function addMarkers(events) {
             let infoWindow = new google.maps.InfoWindow({
                 content: '<div style="padding: 8px;"><strong>' + (event.title || 'Event in Philly') + '</strong><br>' + 
                         (event.locationDescription || 'Location not specified') + '<br>' +
-                        '<a href="/pages/event-details.html?id=' + event.id + '" style="color: #3b82f6; text-decoration: underline; margin-top: 8px; display: inline-block;">View Details →</a></div>',
+                        '<a href="/pages/event-details.html?id=' + event.id + '" style="color: #3b82f6; text-decoration: underline; margin-top: 8px; display: inline-block;">View Details \u2192</a></div>',
                 disableAutoPan: false
             });
             

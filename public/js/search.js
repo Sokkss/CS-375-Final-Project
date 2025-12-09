@@ -176,7 +176,7 @@ function createEventCard(event) {
         link.href = event.external_link || event.externalLink;
         link.target = '_blank';
         link.className = 'inline-block mt-3 text-blue-500 hover:text-blue-700 text-sm';
-        link.textContent = 'View Details →';
+        link.textContent = 'View Details \u2192';
         contentDiv.appendChild(link);
     }
     

@@ -6,11 +6,12 @@ let defaultPic = '/images/abstract-user-flat-1.svg';
 
 function clearAuthState() {
     localStorage.removeItem('profileImage');
+    localStorage.removeItem('isLoggedIn');
 }
 
-function updateUIForLoggedIn(user) {
+function updateUIForLoggedIn(picture) {
     if (userIconButton) {
-        userIconButton.src = user.picture || defaultPic;
+        userIconButton.src = picture || defaultPic;
         userIconButton.classList.remove('invisible');
         userIconButton.classList.add('ring-2', 'ring-green-500');
     }
@@ -36,11 +37,27 @@ function updateUIForLoggedOut() {
     }
 }
 
-function checkAuthStatus() {
-    if (userIconButton) {
-        userIconButton.classList.remove('invisible');
-        userIconButton.src = defaultPic;
+function applyFromCache() {
+    let cachedPicture = localStorage.getItem('profileImage');
+    let cachedLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    if (cachedLoggedIn === 'true' && cachedPicture) {
+        updateUIForLoggedIn(cachedPicture);
+        return true;
+    } else if (cachedLoggedIn === 'false') {
+        updateUIForLoggedOut();
+        return true;
     }
+    
+    if (userIconButton) {
+        userIconButton.src = defaultPic;
+        userIconButton.classList.remove('invisible');
+    }
+    return false;
+}
+
+function checkAuthStatus() {
+    applyFromCache();
     
     return fetch('/api/user', { cache: 'no-store', credentials: 'include' })
         .then(function(response) {
@@ -48,21 +65,21 @@ function checkAuthStatus() {
         })
         .then(function(data) {
             if (data.authenticated && data.user) {
+                localStorage.setItem('isLoggedIn', 'true');
                 if (data.user.picture) {
                     localStorage.setItem('profileImage', data.user.picture);
                 }
-                updateUIForLoggedIn(data.user);
+                updateUIForLoggedIn(data.user.picture);
                 return { authenticated: true, user: data.user };
             } else {
-                clearAuthState();
+                localStorage.setItem('isLoggedIn', 'false');
+                localStorage.removeItem('profileImage');
                 updateUIForLoggedOut();
                 return { authenticated: false, user: null };
             }
         })
         .catch(function(err) {
             console.error('Error checking auth status:', err);
-            clearAuthState();
-            updateUIForLoggedOut();
             return { authenticated: false, user: null };
         });
 }

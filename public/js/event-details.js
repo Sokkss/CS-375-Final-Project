@@ -3,6 +3,51 @@ import { initMap, updateMapMarkers } from './index.js';
 let currentUser = null;
 let currentUserEmail = null;
 
+function showRsvpModal(type, title, message) {
+    let modal = document.getElementById('rsvpModal');
+    let modalIcon = document.getElementById('rsvpModalIcon');
+    let modalTitle = document.getElementById('rsvpModalTitle');
+    let modalMessage = document.getElementById('rsvpModalMessage');
+    let modalClose = document.getElementById('rsvpModalClose');
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    
+    modalIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center';
+    
+    if (type === 'success') {
+        modalIcon.classList.add('bg-green-100');
+        modalIcon.textContent = '\u2713';
+        modalIcon.style.color = '#22c55e';
+        modalIcon.style.fontSize = '2rem';
+    } else if (type === 'error') {
+        modalIcon.classList.add('bg-red-100');
+        modalIcon.textContent = '\u2715';
+        modalIcon.style.color = '#ef4444';
+        modalIcon.style.fontSize = '2rem';
+    } else {
+        modalIcon.classList.add('bg-blue-100');
+        modalIcon.textContent = '\u2139';
+        modalIcon.style.color = '#3b82f6';
+        modalIcon.style.fontSize = '2rem';
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    modalClose.onclick = function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+}
+
 async function fetchCurrentUser() {
     try {
         const response = await fetch('/api/user');
@@ -160,7 +205,7 @@ function setupRSVPButton(eventId, eventOwner) {
 
 function handleRSVP(eventId) {
     if (!currentUser || !currentUserEmail) {
-        alert('Please log in to RSVP to events');
+        showRsvpModal('info', 'Login Required', 'Please log in to RSVP to events.');
         return;
     }
 
@@ -175,12 +220,12 @@ function handleRSVP(eventId) {
             userEmail: currentUserEmail
         })
     })
-        .then(response => {
+        .then(function(response) {
             return response.json();
         })
-        .then(body => {
+        .then(function(body) {
             if (body.message) {
-                alert('Successfully RSVP\'d to event!');
+                showRsvpModal('success', 'RSVP Confirmed!', 'You have successfully RSVP\'d to this event.');
                 loadAttendees(eventId);
                 let rsvpButton = document.getElementById('rsvpButton');
                 rsvpButton.disabled = true;
@@ -188,12 +233,12 @@ function handleRSVP(eventId) {
                 rsvpButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 rsvpButton.classList.add('bg-gray-400', 'cursor-not-allowed');
             } else {
-                alert(body.error || 'Failed to RSVP');
+                showRsvpModal('error', 'RSVP Failed', body.error || 'Unable to complete your RSVP. Please try again.');
             }
         })
-        .catch(error => {
+        .catch(function(error) {
             console.error('Error RSVPing to event:', error);
-            alert('An error occurred. Please try again.');
+            showRsvpModal('error', 'Something Went Wrong', 'An error occurred while processing your RSVP. Please try again.');
         });
 }
 

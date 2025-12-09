@@ -476,7 +476,7 @@ async function confirmRSVP() {
             
             const btn = document.getElementById(`rsvp-btn-${pendingRsvpEventId}`);
             if (btn) {
-                btn.textContent = 'RSVP\'d ✓';
+                btn.textContent = 'RSVP\'d \u2713';
                 btn.disabled = true;
                 btn.className = 'bg-gray-400 text-white text-xs py-1 px-3 rounded mt-1 cursor-not-allowed';
             }
