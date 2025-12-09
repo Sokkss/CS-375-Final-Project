@@ -7,6 +7,7 @@
 DROP TABLE IF EXISTS rsvps;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS foo;
+DROP TABLE IF EXISTS session;
 
 -- create whatever tables you need here
 CREATE TABLE foo (
@@ -39,6 +40,14 @@ CREATE TABLE rsvps (
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE(user_id, event_id)
 );
+
+CREATE TABLE session (
+    sid VARCHAR NOT NULL COLLATE "default",
+    sess JSON NOT NULL,
+    expire TIMESTAMP(6) NOT NULL,
+    PRIMARY KEY (sid)
+);
+CREATE INDEX idx_session_expire ON session (expire);
 
 -- dummy data
 INSERT INTO foo (datum) VALUES ('Hello this is some text');

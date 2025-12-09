@@ -10,6 +10,7 @@
   "dependencies": {
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
+    "connect-pg-simple": "^10.0.0",
     "env-cmd": "^10.1.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",

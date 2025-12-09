@@ -7,9 +7,9 @@ const googleAuthController = require('../controllers/googleAuthController');
 
 // citation: largely from Professor Long's sample code
 function createRoutes(pool) {
-    const router = express.Router();
+    let router = express.Router();
     
-    router.use(googleAuthController.getSession());
+    router.use(googleAuthController.getSession(pool));
 
     router.get('/events/philly/next-week', getPhillyNextWeek);
 

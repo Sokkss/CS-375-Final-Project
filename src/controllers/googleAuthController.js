@@ -1,5 +1,6 @@
-const session = require('express-session');
-const { google } = require('googleapis');
+let session = require('express-session');
+let { google } = require('googleapis');
+let pgSession = require('connect-pg-simple')(session);
 
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -14,19 +15,31 @@ const SCOPES = [
     'https://www.googleapis.com/auth/calendar'
 ];
 
-function getSession() { 
-    return session({
+let isProduction = process.env.NODE_ENV === 'production';
+
+function getSession(pool) {
+    let sessionConfig = {
         name: 'philly.sid',
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          maxAge: 24 * 60 * 60 * 1000
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
         }
-    });
+    };
+    
+    if (pool) {
+        sessionConfig.store = new pgSession({
+            pool: pool,
+            tableName: 'session',
+            createTableIfMissing: false
+        });
+    }
+    
+    return session(sessionConfig);
 }
 
 async function getGoogleAuth(req, res) {
@@ -95,13 +108,16 @@ async function getCalendar(req, res) {
     }
 }
 
-async function getLogout(req, res) {
-    req.session.destroy(() => {
-      res.clearCookie('philly.sid', {
-            secure: true,
-            sameSite: 'none',
+function getLogout(req, res) {
+    req.session.destroy(function(err) {
+        if (err) {
+            console.error('Session destroy error:', err);
+        }
+        res.clearCookie('philly.sid', {
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax'
         });
-      res.redirect('/');
+        res.redirect('/');
     });
 }
 
