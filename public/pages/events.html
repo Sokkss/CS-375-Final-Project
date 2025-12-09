@@ -81,44 +81,30 @@
             <!-- Event Location Description -->
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="locationDescription">
-                    Location Description *
+                    Location / Address *
                 </label>
-                <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="locationDescription"
-                        placeholder="e.g., City Hall, Philadelphia, PA"
-                        required
-                        type="text"
-                >
+                <div class="flex gap-2">
+                    <input
+                            class="shadow appearance-none border rounded flex-1 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="locationDescription"
+                            placeholder="e.g., 1500 Market St, Philadelphia, PA"
+                            required
+                            type="text"
+                    >
+                    <button
+                            type="button"
+                            id="geocodeBtn"
+                            class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded whitespace-nowrap"
+                    >
+                        Look Up
+                    </button>
+                </div>
+                <p id="geocodeStatus" class="text-sm mt-1 text-gray-500"></p>
             </div>
 
-            <!-- Event Latitude (optional) -->
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="lat">
-                    Latitude (optional)
-                </label>
-                <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="lat"
-                        placeholder="e.g., 39.9526"
-                        step="any"
-                        type="number"
-                >
-            </div>
-
-            <!-- Event Longitude (optional) -->
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="long">
-                    Longitude (optional)
-                </label>
-                <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="long"
-                        placeholder="e.g., -75.1652"
-                        step="any"
-                        type="number"
-                >
-            </div>
+            <!-- Hidden coordinate fields -->
+            <input type="hidden" id="lat">
+            <input type="hidden" id="long">
 
             <!-- Event Date and Time -->
             <div class="mb-4">
