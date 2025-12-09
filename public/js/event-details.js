@@ -200,10 +200,51 @@ function loadAttendees(eventId) {
 function setupRSVPButton(eventId, eventOwner) {
     let rsvpButton = document.getElementById('rsvpButton');
 
-    if (currentUser && currentUser !== eventOwner) {
-        rsvpButton.classList.remove('hidden');
-        rsvpButton.onclick = () => handleRSVP(eventId);
+    if (!currentUser || currentUser === eventOwner) {
+        return;
     }
+    
+    rsvpButton.classList.remove('hidden');
+    
+    fetch('/api/events/' + eventId + '/attendees')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            let attendees = data.attendees || [];
+            let hasRsvpd = attendees.some(function(attendee) {
+                return attendee.email === currentUserEmail || attendee.name === currentUser;
+            });
+            
+            if (hasRsvpd) {
+                setButtonToCancelState(rsvpButton, eventId);
+            } else {
+                setButtonToRsvpState(rsvpButton, eventId);
+            }
+        })
+        .catch(function() {
+            setButtonToRsvpState(rsvpButton, eventId);
+        });
+}
+
+function setButtonToRsvpState(button, eventId) {
+    button.textContent = 'RSVP to Event';
+    button.disabled = false;
+    button.classList.remove('bg-red-500', 'hover:bg-red-600', 'bg-gray-400', 'cursor-not-allowed');
+    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+    button.onclick = function() {
+        handleRSVP(eventId);
+    };
+}
+
+function setButtonToCancelState(button, eventId) {
+    button.textContent = 'Cancel RSVP';
+    button.disabled = false;
+    button.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'bg-gray-400', 'cursor-not-allowed');
+    button.classList.add('bg-red-500', 'hover:bg-red-600');
+    button.onclick = function() {
+        handleCancelRSVP(eventId);
+    };
 }
 
 function handleRSVP(eventId) {
@@ -212,7 +253,7 @@ function handleRSVP(eventId) {
         return;
     }
 
-    let url = `/api/events/${eventId}/rsvp`;
+    let url = '/api/events/' + eventId + '/rsvp';
     fetch(url, {
         method: 'POST',
         headers: {
@@ -231,10 +272,7 @@ function handleRSVP(eventId) {
                 showRsvpModal('success', 'RSVP Confirmed!', 'You have successfully RSVP\'d to this event.');
                 loadAttendees(eventId);
                 let rsvpButton = document.getElementById('rsvpButton');
-                rsvpButton.disabled = true;
-                rsvpButton.textContent = 'RSVP\'d Successfully';
-                rsvpButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                rsvpButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                setButtonToCancelState(rsvpButton, eventId);
             } else {
                 showRsvpModal('error', 'RSVP Failed', body.error || 'Unable to complete your RSVP. Please try again.');
             }
@@ -242,6 +280,42 @@ function handleRSVP(eventId) {
         .catch(function(error) {
             console.error('Error RSVPing to event:', error);
             showRsvpModal('error', 'Something Went Wrong', 'An error occurred while processing your RSVP. Please try again.');
+        });
+}
+
+function handleCancelRSVP(eventId) {
+    if (!currentUser || !currentUserEmail) {
+        showRsvpModal('info', 'Login Required', 'Please log in to manage your RSVP.');
+        return;
+    }
+
+    let url = '/api/events/' + eventId + '/rsvp';
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId: currentUser,
+            userEmail: currentUserEmail
+        })
+    })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(body) {
+            if (body.message) {
+                showRsvpModal('success', 'RSVP Cancelled', 'Your RSVP has been cancelled.');
+                loadAttendees(eventId);
+                let rsvpButton = document.getElementById('rsvpButton');
+                setButtonToRsvpState(rsvpButton, eventId);
+            } else {
+                showRsvpModal('error', 'Cancel Failed', body.error || 'Unable to cancel your RSVP. Please try again.');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error cancelling RSVP:', error);
+            showRsvpModal('error', 'Something Went Wrong', 'An error occurred while cancelling your RSVP. Please try again.');
         });
 }
 
