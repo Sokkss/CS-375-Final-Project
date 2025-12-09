@@ -1,60 +1,97 @@
 let loginButton = document.getElementById('login');
 let logoutButton = document.getElementById('logout');
 let userIconButton = document.getElementById('userIconButton');
-let userDropdown = document.getElementById('userDropdown');
 
-async function updateUserIcon() {
-    if (!userIconButton) return;
+let defaultPic = '/images/abstract-user-flat-1.svg';
 
-    const defaultPic = '../images/abstract-user-flat-1.svg';
-    const cachedPic = localStorage.getItem('profileImage');
+function clearAuthState() {
+    localStorage.removeItem('profileImage');
+}
 
-    if (cachedPic) {
-        userIconButton.src = cachedPic;
-    } else {
-        userIconButton.src = defaultPic;
+function updateUIForLoggedIn(user) {
+    if (userIconButton) {
+        userIconButton.src = user.picture || defaultPic;
+        userIconButton.classList.remove('invisible');
+        userIconButton.classList.add('ring-2', 'ring-green-500');
     }
-
-    userIconButton.classList.remove('invisible'); 
-    userIconButton.classList.add('cursor-pointer');
-
-    try {
-        const response = await fetch('/api/user', { cache: 'no-store', credentials: 'include' });
-        const data = await response.json();
-
-        if (data.authenticated && data.user?.picture) {
-            const serverPic = data.user.picture;
-            userIconButton.src = serverPic;
-            localStorage.setItem('profileImage', serverPic);
-        } else {
-            userIconButton.src = defaultPic;
-            localStorage.removeItem('profileImage');
-        }
-    } catch (err) {
-        console.error('Error checking user:', err);
+    if (loginButton) {
+        loginButton.classList.add('hidden');
+    }
+    if (logoutButton) {
+        logoutButton.classList.remove('hidden');
     }
 }
 
+function updateUIForLoggedOut() {
+    if (userIconButton) {
+        userIconButton.src = defaultPic;
+        userIconButton.classList.remove('invisible');
+        userIconButton.classList.remove('ring-2', 'ring-green-500');
+    }
+    if (loginButton) {
+        loginButton.classList.remove('hidden');
+    }
+    if (logoutButton) {
+        logoutButton.classList.add('hidden');
+    }
+}
+
+function checkAuthStatus() {
+    if (userIconButton) {
+        userIconButton.classList.remove('invisible');
+        userIconButton.src = defaultPic;
+    }
+    
+    return fetch('/api/user', { cache: 'no-store', credentials: 'include' })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.authenticated && data.user) {
+                if (data.user.picture) {
+                    localStorage.setItem('profileImage', data.user.picture);
+                }
+                updateUIForLoggedIn(data.user);
+                return { authenticated: true, user: data.user };
+            } else {
+                clearAuthState();
+                updateUIForLoggedOut();
+                return { authenticated: false, user: null };
+            }
+        })
+        .catch(function(err) {
+            console.error('Error checking auth status:', err);
+            clearAuthState();
+            updateUIForLoggedOut();
+            return { authenticated: false, user: null };
+        });
+}
+
 export function login() {
-    if (!loginButton || !userIconButton) return;
+    if (!loginButton) {
+        return;
+    }
 
-    loginButton.addEventListener('click', () => {
-        const currentUrl = window.location.href;
-        const popup = window.open(
-            `${window.location.origin}/auth/google?redirect=${encodeURIComponent(currentUrl)}`,
-            "googleLogin",
-            "width=500,height=600"
+    loginButton.addEventListener('click', function() {
+        let currentUrl = window.location.href;
+        window.open(
+            window.location.origin + '/auth/google?redirect=' + encodeURIComponent(currentUrl),
+            'googleLogin',
+            'width=500,height=600'
         );
- 
-        function handleMessage(event) {
-            if (event.origin !== window.location.origin) return;
 
-            if (event.data.loggedIn && event.data.user?.picture) {
-                window.location.reload();
+        function handleMessage(event) {
+            if (event.origin !== window.location.origin) {
+                return;
             }
 
-            if (event.data.loggedIn) {
+            if (event.data && event.data.loggedIn) {
                 window.removeEventListener('message', handleMessage);
+                window.location.reload();
+            } else if (event.data && event.data.loggedIn === false) {
+                window.removeEventListener('message', handleMessage);
+                clearAuthState();
+                updateUIForLoggedOut();
             }
         }
 
@@ -63,26 +100,24 @@ export function login() {
 }
 
 export function logout() {
-    if (!logoutButton) return;
+    if (!logoutButton) {
+        return;
+    }
 
-    logoutButton.addEventListener('click', async () => {
-        await fetch('/auth/logout', { credentials: 'include' });
-        window.location.reload();
+    logoutButton.addEventListener('click', function() {
+        fetch('/auth/logout', { credentials: 'include' })
+            .then(function() {
+                clearAuthState();
+                window.location.reload();
+            })
+            .catch(function(err) {
+                console.error('Logout error:', err);
+                clearAuthState();
+                window.location.reload();
+            });
     });
 }
 
-if (userIconButton && userDropdown) {
-    userIconButton.addEventListener('click', (event) => {
-        userDropdown.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!userIconButton.contains(event.target) && !userDropdown.contains(event.target)) {
-            userDropdown.classList.add('hidden');
-        }
-    });
-}
-
-updateUserIcon();
+checkAuthStatus();
 login();
 logout();

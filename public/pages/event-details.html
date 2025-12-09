@@ -9,7 +9,9 @@
 <body class="bg-gray-100 min-h-screen">
 <nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-2 bg-[#f6eedc] shadow-sm">
     <div>
-        <img alt="Logo" class="h-10 w-auto object-contain" src="../images/phillyily-logo.png">
+        <a class="inline-flex items-center" href="../index.html">
+            <img alt="Logo" class="h-10 w-auto object-contain" src="../images/phillyily-logo.png">
+        </a>
     </div>
     <div class="flex space-x-6 text-sm">
         <a href="../index.html">Home</a>
@@ -17,16 +19,10 @@
         <a href="events.html">Events</a>
         <a href="calendar.html">Calendar</a>
     </div>
-    <div class="relative">
-    <img id="userIconButton" alt="User" class="w-8 h-8 rounded-full invisible cursor-pointer">
-    <div id="userDropdown"
-        class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg">
-        <button id="login" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-            Login
-        </button>
-        <button id="logout" class="block w-full text-left px-4 py-2 hover:bg-gray-100">
-            Logout
-        </button>
+    <div class="flex items-center pr-2">
+        <button id="login" class="text-sm hover:text-blue-600 cursor-pointer hidden mr-2">Login</button>
+        <button id="logout" class="text-sm hover:text-blue-600 cursor-pointer hidden mr-2">Logout</button>
+        <img id="userIconButton" alt="User" class="w-8 h-8 rounded-full invisible">
     </div>
 </nav>
 
