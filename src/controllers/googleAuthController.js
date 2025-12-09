@@ -35,7 +35,7 @@ function getSession(pool) {
         sessionConfig.store = new pgSession({
             pool: pool,
             tableName: 'session',
-            createTableIfMissing: false
+            createTableIfMissing: true
         });
     }
     

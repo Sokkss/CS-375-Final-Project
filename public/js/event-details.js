@@ -171,9 +171,12 @@ function initEventMap(event) {
     let mapContainer = document.getElementById('eventMapContainer');
     mapContainer.classList.remove('hidden');
 
-    initMap('eventMap', false).then(() => {
+    let centerLat = parseFloat(event.lat);
+    let centerLng = parseFloat(event.long);
+    
+    initMap('eventMap', false, centerLat, centerLng).then(function() {
         updateMapMarkers([event]);
-    }).catch(error => {
+    }).catch(function(error) {
         console.error('Error initializing map:', error);
     });
 }
