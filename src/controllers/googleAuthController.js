@@ -93,18 +93,48 @@ async function getCalendar(req, res) {
         return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const { access_token } = req.session.user.tokens;
+    let tokens = req.session.user.tokens;
 
     try {
-        const calendarId = 'primary';
-        const encodedCalendarId = encodeURIComponent(calendarId);
-        const embedUrl = `https://calendar.google.com/calendar/embed?src=${encodedCalendarId}&ctz=America%2FNew_York&access_token=${access_token}`;
+        oauth2Client.setCredentials({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token
+        });
 
-        return res.json({ embedUrl });
+        let calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+        
+        let now = new Date();
+        let oneMonthFromNow = new Date();
+        oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+        let response = await calendar.events.list({
+            calendarId: 'primary',
+            timeMin: now.toISOString(),
+            timeMax: oneMonthFromNow.toISOString(),
+            maxResults: 50,
+            singleEvents: true,
+            orderBy: 'startTime'
+        });
+
+        let events = response.data.items || [];
+        
+        let formattedEvents = events.map(function(event) {
+            return {
+                id: event.id,
+                title: event.summary || 'No title',
+                description: event.description || '',
+                start: event.start.dateTime || event.start.date,
+                end: event.end.dateTime || event.end.date,
+                location: event.location || '',
+                htmlLink: event.htmlLink
+            };
+        });
+
+        return res.json({ events: formattedEvents });
 
     } catch (err) {
-        console.error('Error generating embed URL:', err);
-        return res.status(500).json({ error: 'Failed to generate embed URL' });
+        console.error('Error fetching calendar events:', err);
+        return res.status(500).json({ error: 'Failed to fetch calendar events' });
     }
 }
 
