@@ -28,25 +28,16 @@ async function fetchPhillyEventsNextWeek() {
         }
 
         const mappedEvents = res.data.events.map((item, index) => {
-            let id = `seatgeek-event-${page}-${index}`;
-            let title = item.short_title;
-            let description = `${item.title} at ${item.venue.name}. More information here: ${item.url}`;
-            let locationDescription = `${item.venue.address} ${item.venue.city} ${item.venue.state} ${item.venue.postal_code}`;
-            let lat = item.venue.location.lat;
-            let long = item.venue.location.lon;
-            let time = item.datetime_utc;
-            let owner = 'Seatgeek';
-            let externalLink = item.url;
-            
-            let image = null;
-            if (item.performers && item.performers.length > 0) {
-                let performer = item.performers[0];
-                if (performer.image) {
-                    image = performer.image;
-                } else if (performer.images && performer.images.huge) {
-                    image = performer.images.huge;
-                }
-            }
+            const id = `seatgeek-event-${page}-${index}`;
+            const title = item.short_title;
+            const description = `${item.title} at ${item.venue.name}. More information here: ${item.url}`;
+            const locationDescription = `${item.venue.address} ${item.venue.city} ${item.venue.state} ${item.venue.postal_code}`;
+            const lat = item.venue.location.lat;
+            const long = item.venue.location.lon;
+            const time = item.datetime_utc;
+            const owner = 'Seatgeek';
+            const image = null;
+            const externalLink = item.url;
 
             return new Event(id, title, description, locationDescription, lat, long, time, owner, image, externalLink);
         });
