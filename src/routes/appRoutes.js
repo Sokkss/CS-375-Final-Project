@@ -29,9 +29,6 @@ function createRoutes(pool) {
     // External events (seatgeek + visitphilly + eventbrite)
     router.post('/api/events/collect-external', (req, res) => externalEventController.collectExternalEvents(req, res, pool));
 
-    // Event image endpoint (for dynamic stock images)
-    router.get('/api/event-image', (req, res) => eventController.getEventImage(req, res));
-
     // Google OAuth + calendar
     router.get('/auth/google', (req, res) => googleAuthController.getGoogleAuth(req, res));
     router.get('/auth/google/callback', (req, res) => googleAuthController.getGoogleAuthCallback(req, res));
