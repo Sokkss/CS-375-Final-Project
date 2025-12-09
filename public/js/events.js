@@ -204,80 +204,6 @@ function displayEvents(events) {
 }
 
 
-async function getEventImageUrl(event) {
-    if (event.image) {
-        console.log('Using existing event image:', event.image);
-        return event.image;
-    }
-    
-    const titleWords = (event.title || '').split(/\s+/).slice(0, 3).join(' ');
-    const descWords = (event.description || '').split(/\s+/).slice(0, 5).join(' ');
-    const query = `${titleWords} ${descWords}`.trim().replace(/\s+/g, ' ');
-    
-    if (!query) {
-        console.log('No query generated for event:', event.title);
-        return null;
-    }
-    
-    try {
-        const encodedQuery = encodeURIComponent(query);
-        const url = `/api/event-image?query=${encodedQuery}`;
-        console.log('Fetching image for query:', query, 'URL:', url);
-        
-        const response = await fetch(url);
-        console.log('Image API response status:', response.status);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Image API response data:', data);
-            if (data.imageUrl) {
-                return data.imageUrl;
-            }
-        } else {
-            const errorText = await response.text();
-            console.error('Image API error response:', errorText);
-        }
-    } catch (error) {
-        console.error('Image fetch failed, using placeholder:', error);
-    }
-    
-    return null;
-}
-
-
-async function loadEventImage(imageContainer, event) {
-    const imageUrl = await getEventImageUrl(event);
-    
-    if (imageUrl) {
-        console.log('Loading image for event:', event.title, 'URL:', imageUrl);
-        
-        const placeholder = imageContainer.querySelector('.gradient-placeholder');
-        if (!placeholder) {
-            console.log('No placeholder found, cannot load image');
-            return;
-        }
-        
-        const img = document.createElement('img');
-        img.alt = `Image for ${event.title}`;
-        img.className = 'w-full h-52 object-cover';
-        
-        img.onload = () => {
-            console.log('Image loaded successfully for event:', event.title);
-            if (placeholder && placeholder.parentNode) {
-                placeholder.parentNode.replaceChild(img, placeholder);
-            }
-        };
-        
-        img.onerror = (e) => {
-            console.error('Image load failed for URL:', imageUrl, 'keeping placeholder', e);
-        };
-        
-        img.src = imageUrl;
-    } else {
-        console.log('No image URL returned, keeping placeholder for event:', event.title);
-    }
-}
-
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:scale-[1.02] hover:border-gray-300 transition-all duration-200 cursor-pointer';
@@ -317,10 +243,8 @@ function createEventCard(event) {
         imageContainer.appendChild(img);
     } else {
         const placeholder = document.createElement('div');
-        placeholder.className = 'w-full h-52 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 gradient-placeholder';
+        placeholder.className = 'w-full h-52 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400';
         imageContainer.appendChild(placeholder);
-        
-        loadEventImage(imageContainer, event);
     }
     
     card.appendChild(imageContainer);

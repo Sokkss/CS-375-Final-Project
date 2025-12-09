@@ -3,70 +3,6 @@ import { initMap, updateMapMarkers } from './index.js';
 let currentUser = null;
 let currentUserEmail = null;
 
-/**
- * Fetches a dynamic image URL for an event based on its title and description.
- * Falls back to gradient placeholder if image fetch fails.
- */
-async function getEventImageUrl(event) {
-    // If event already has an image, use it
-    if (event.image) {
-        return event.image;
-    }
-    
-    // Build search query from event title and description
-    const titleWords = (event.title || '').split(/\s+/).slice(0, 3).join(' ');
-    const descWords = (event.description || '').split(/\s+/).slice(0, 5).join(' ');
-    const query = `${titleWords} ${descWords}`.trim().replace(/\s+/g, ' ');
-    
-    if (!query) {
-        return null;
-    }
-    
-    try {
-        const encodedQuery = encodeURIComponent(query);
-        const response = await fetch(`/api/event-image?query=${encodedQuery}`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.imageUrl) {
-                return data.imageUrl;
-            }
-        }
-    } catch (error) {
-        console.debug('Image fetch failed, using placeholder:', error);
-    }
-    
-    return null;
-}
-
-/**
- * Loads and displays an event image with graceful fallback to gradient placeholder.
- */
-async function loadEventImage(imageContainer, event) {
-    const imageUrl = await getEventImageUrl(event);
-    
-    if (imageUrl) {
-        const eventImage = document.getElementById('eventImage');
-        if (eventImage) {
-            eventImage.src = imageUrl;
-            eventImage.alt = `Image for ${event.title}`;
-            eventImage.onload = () => {
-                eventImage.classList.remove('hidden');
-                // Remove gradient background when image loads
-                if (imageContainer) {
-                    imageContainer.classList.remove('bg-gradient-to-br', 'from-indigo-400', 'via-purple-400', 'to-pink-400');
-                }
-            };
-            eventImage.onerror = () => {
-                console.error('Image load failed, keeping gradient placeholder');
-                // Keep gradient, hide broken image
-                eventImage.classList.add('hidden');
-            };
-        }
-    }
-    // If no image URL, gradient placeholder remains
-}
-
 async function fetchCurrentUser() {
     try {
         const response = await fetch('/api/user');
@@ -148,28 +84,21 @@ function displayEventDetails(event) {
 
     document.getElementById('eventOwner').textContent = `Created by ${event.owner}`;
 
-    // Handle event image - use existing image or load dynamic image
     let eventImage = document.getElementById('eventImage');
     let imageContainer = document.getElementById('eventImageContainer');
     
     if (event.image) {
-        // If event has a custom image, use it immediately
         eventImage.src = event.image;
         eventImage.alt = event.title;
-        eventImage.onload = () => {
+        eventImage.onload = function() {
             eventImage.classList.remove('hidden');
-            // Remove gradient background when image loads
             if (imageContainer) {
                 imageContainer.classList.remove('bg-gradient-to-br', 'from-indigo-400', 'via-purple-400', 'to-pink-400');
             }
         };
-        eventImage.onerror = () => {
-            // If custom image fails, try dynamic image
-            loadEventImage(imageContainer, event);
+        eventImage.onerror = function() {
+            eventImage.classList.add('hidden');
         };
-    } else {
-        // No custom image - load dynamic image based on event title/description
-        loadEventImage(imageContainer, event);
     }
 
     let descContainer = document.getElementById('eventDescriptionContainer');

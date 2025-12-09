@@ -297,41 +297,6 @@ function getUserEventSummary(req, res, pool) {
         });
 }
 
-
-// Get dynamic event image URL based on search query
-async function getEventImage(req, res) {
-    try {
-        const query = req.query.query;
-        
-        if (!query || typeof query !== 'string' || query.trim().length === 0) {
-            return res.status(400).json({ 
-                error: 'Query parameter is required' 
-            });
-        }
-        
-        // Use a combination of image services for reliability
-        // Primary: Picsum Photos with deterministic seeding
-        // This ensures same query returns same image (consistent per event)
-        const queryHash = query.trim().split('').reduce((acc, char) => {
-            return ((acc << 5) - acc) + char.charCodeAt(0);
-        }, 0);
-        const seed = Math.abs(queryHash) % 1000; // Use hash as seed (0-999)
-        
-        // Picsum Photos - reliable, free, no auth, CORS-enabled
-        // Format: https://picsum.photos/seed/{seed}/{width}/{height}
-        const imageUrl = `https://picsum.photos/seed/${seed}/800/400`;
-        
-        return res.status(200).json({
-            imageUrl: imageUrl
-        });
-    } catch (error) {
-        console.error('Error in getEventImage controller:', error);
-        return res.status(500).json({ 
-            error: 'Failed to get event image' 
-        });
-    }
-}
-
 module.exports = {
     createEvent,
     getAllEvents,
@@ -342,6 +307,5 @@ module.exports = {
     cancelRSVP,
     getEventAttendees,
     searchEvents,
-    getEventImage,
     getUserEventSummary
 };
