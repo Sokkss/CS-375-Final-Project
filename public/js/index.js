@@ -31,23 +31,29 @@ let map;
 let markers = [];
 let currentInfoWindow = null;
 
-export function initMap(mapContainerId, loadAllEvents = true) {
-    const mapElement = document.getElementById(mapContainerId);
+export function initMap(mapContainerId, loadAllEvents = true, centerLat = null, centerLng = null) {
+    let mapElement = document.getElementById(mapContainerId);
     if (!mapElement) {
         console.error(`Map container with id "${mapContainerId}" not found`);
         return Promise.reject(new Error('Map container not found'));
     }
     
     if (map && window.PinElement) {
+        if (centerLat !== null && centerLng !== null) {
+            map.setCenter({ lat: centerLat, lng: centerLng });
+            map.setZoom(15);
+        }
         return Promise.resolve();
     }
     
-    const position = { lat: 39.9526, lng: -75.1652 };
+    let lat = centerLat !== null ? centerLat : 39.9526;
+    let lng = centerLng !== null ? centerLng : -75.1652;
+    let zoom = centerLat !== null ? 15 : 13;
     
-    return google.maps.importLibrary("maps").then(({ Map }) => {
+    return google.maps.importLibrary("maps").then(function({ Map }) {
         map = new Map(mapElement, {
-            zoom: 13,
-            center: position,
+            zoom: zoom,
+            center: { lat: lat, lng: lng },
             mapId: "Main-Events-Map"
         });
         
