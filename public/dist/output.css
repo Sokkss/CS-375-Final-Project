@@ -821,6 +821,10 @@ video {
   max-height: 80vh;
 }
 
+.max-h-48 {
+  max-height: 12rem;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
@@ -1306,6 +1310,10 @@ video {
   padding-right: 0.5rem;
 }
 
+.pt-3 {
+  padding-top: 0.75rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -1620,6 +1628,11 @@ video {
 .hover\:bg-red-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-gray-200:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
 }
 
 .hover\:text-blue-700:hover {

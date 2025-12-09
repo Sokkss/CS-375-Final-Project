@@ -165,6 +165,7 @@ function displayEventDetails(event) {
 
     loadAttendees(event.id);
     setupRSVPButton(event.id, event.owner);
+    setupViewAttendeesButton(event.owner);
 }
 
 function initEventMap(event) {
@@ -181,20 +182,108 @@ function initEventMap(event) {
     });
 }
 
+let currentEventAttendees = [];
+
 function loadAttendees(eventId) {
-    let url = `/api/events/${eventId}/attendees`;
+    let url = '/api/events/' + eventId + '/attendees';
     fetch(url)
-        .then(response => {
+        .then(function(response) {
             return response.json();
         })
-        .then(body => {
+        .then(function(body) {
             let count = body.count || 0;
-            document.getElementById('attendeeCount').textContent = `${count} attendee(s)`;
+            currentEventAttendees = body.attendees || [];
+            document.getElementById('attendeeCount').textContent = count + ' attendee(s)';
         })
-        .catch(error => {
+        .catch(function(error) {
             console.error('Error loading attendees:', error);
             document.getElementById('attendeeCount').textContent = 'Unable to load attendee count';
         });
+}
+
+function setupViewAttendeesButton(eventOwner) {
+    let viewAttendeesBtn = document.getElementById('viewAttendeesBtn');
+    let attendeesListContainer = document.getElementById('attendeesListContainer');
+    let closeAttendeesListBtn = document.getElementById('closeAttendeesListBtn');
+    let copyEmailsBtn = document.getElementById('copyEmailsBtn');
+    let emailAllBtn = document.getElementById('emailAllBtn');
+    
+    if (!currentUser || currentUser !== eventOwner) {
+        return;
+    }
+    
+    viewAttendeesBtn.classList.remove('hidden');
+    
+    viewAttendeesBtn.onclick = function() {
+        let emailList = document.getElementById('attendeesEmailList');
+        let allEmailsTextarea = document.getElementById('allEmails');
+        
+        while (emailList.firstChild) {
+            emailList.removeChild(emailList.firstChild);
+        }
+        
+        let emails = [];
+        
+        if (currentEventAttendees.length === 0) {
+            let emptyMsg = document.createElement('p');
+            emptyMsg.className = 'text-gray-500 text-sm';
+            emptyMsg.textContent = 'No attendees yet.';
+            emailList.appendChild(emptyMsg);
+        } else {
+            currentEventAttendees.forEach(function(attendee) {
+                let attendeeDiv = document.createElement('div');
+                attendeeDiv.className = 'flex justify-between items-center py-1 border-b border-gray-200';
+                
+                let nameSpan = document.createElement('span');
+                nameSpan.className = 'font-medium text-gray-800';
+                nameSpan.textContent = attendee.name || 'Unknown';
+                attendeeDiv.appendChild(nameSpan);
+                
+                if (attendee.email) {
+                    let emailLink = document.createElement('a');
+                    emailLink.href = 'mailto:' + attendee.email;
+                    emailLink.className = 'text-blue-600 hover:text-blue-800 text-sm';
+                    emailLink.textContent = attendee.email;
+                    attendeeDiv.appendChild(emailLink);
+                    emails.push(attendee.email);
+                }
+                
+                emailList.appendChild(attendeeDiv);
+            });
+        }
+        
+        allEmailsTextarea.value = emails.join(', ');
+        attendeesListContainer.classList.remove('hidden');
+    };
+    
+    closeAttendeesListBtn.onclick = function() {
+        attendeesListContainer.classList.add('hidden');
+    };
+    
+    copyEmailsBtn.onclick = function() {
+        let allEmailsTextarea = document.getElementById('allEmails');
+        allEmailsTextarea.select();
+        document.execCommand('copy');
+        
+        let originalText = copyEmailsBtn.textContent;
+        copyEmailsBtn.textContent = 'Copied!';
+        setTimeout(function() {
+            copyEmailsBtn.textContent = originalText;
+        }, 2000);
+    };
+    
+    emailAllBtn.onclick = function() {
+        let emails = [];
+        currentEventAttendees.forEach(function(attendee) {
+            if (attendee.email) {
+                emails.push(attendee.email);
+            }
+        });
+        
+        if (emails.length > 0) {
+            window.location.href = 'mailto:' + emails.join(',');
+        }
+    };
 }
 
 function setupRSVPButton(eventId, eventOwner) {
