@@ -4,10 +4,13 @@ let userGreeting = document.getElementById('userGreeting');
 let userStatus = document.getElementById('userStatus');
 let upcomingSection = document.getElementById('upcomingSection');
 let rsvpSection = document.getElementById('rsvpSection');
+let hostingSection = document.getElementById('hostingSection');
 let upcomingEventsList = document.getElementById('upcomingEventsList');
 let rsvpEventsList = document.getElementById('rsvpEventsList');
+let hostingEventsList = document.getElementById('hostingEventsList');
 let upcomingEmptyState = document.getElementById('upcomingEmptyState');
 let rsvpEmptyState = document.getElementById('rsvpEmptyState');
+let hostingEmptyState = document.getElementById('hostingEmptyState');
 let userProfileState = { isLoggedIn: false, data: null };
 
 function clearNode(node) {
@@ -169,15 +172,18 @@ function loadUserSummary() {
     }
     
     getUserProfile()
-        .then(profile => {
+        .then(function(profile) {
             if (profile.authenticated && profile.user) {
                 userProfileState.isLoggedIn = true;
                 userProfileState.data = profile.user;
                 let firstName = profile.user.name ? profile.user.name.split(' ')[0] : 'there';
-                userGreeting.textContent = `Welcome back, ${firstName}`;
-                userStatus.textContent = 'Here is what is coming up plus what you are attending next.';
+                userGreeting.textContent = 'Welcome back, ' + firstName;
+                userStatus.textContent = 'Here is what is coming up plus what you are attending and hosting.';
                 if (rsvpSection) {
                     rsvpSection.classList.remove('hidden');
+                }
+                if (hostingSection) {
+                    hostingSection.classList.remove('hidden');
                 }
                 clearUserLists();
                 fetchUpcomingEvents();
@@ -190,12 +196,18 @@ function loadUserSummary() {
                 if (rsvpSection) {
                     rsvpSection.classList.add('hidden');
                 }
-                clearUserLists({ upcoming: false, rsvp: true });
+                if (hostingSection) {
+                    hostingSection.classList.add('hidden');
+                }
+                clearUserLists({ upcoming: false, rsvp: true, hosting: true });
             }
         })
-        .catch(() => {
+        .catch(function() {
             if (rsvpSection) {
                 rsvpSection.classList.add('hidden');
+            }
+            if (hostingSection) {
+                hostingSection.classList.add('hidden');
             }
             userStatus.textContent = 'Unable to load your personalized feed right now.';
         });
@@ -244,16 +256,17 @@ function fetchUserEventSummary() {
     }
     
     fetch('/api/user/events-summary', { credentials: 'include', cache: 'no-store' })
-        .then(response => {
+        .then(function(response) {
             if (!response.ok) {
                 throw new Error('Failed to load user events');
             }
             return response.json();
         })
-        .then(data => {
+        .then(function(data) {
             renderUserSection(rsvpEventsList, rsvpEmptyState, data.rsvpEvents, 'RSVP to an event to see it here.', 'rsvp');
+            renderUserSection(hostingEventsList, hostingEmptyState, data.createdEvents, 'Create an event to see it here.', 'hosting');
         })
-        .catch(() => {
+        .catch(function() {
             if (userStatus) {
                 userStatus.textContent = 'Unable to refresh your personalized feed.';
             }
@@ -351,7 +364,7 @@ function formatEventDate(dateValue) {
 }
 
 function clearUserLists(options) {
-    let config = { upcoming: true, rsvp: true };
+    let config = { upcoming: true, rsvp: true, hosting: true };
     
     if (options && typeof options === 'object') {
         if (options.upcoming !== undefined) {
@@ -359,6 +372,9 @@ function clearUserLists(options) {
         }
         if (options.rsvp !== undefined) {
             config.rsvp = options.rsvp;
+        }
+        if (options.hosting !== undefined) {
+            config.hosting = options.hosting;
         }
     }
     
@@ -368,11 +384,17 @@ function clearUserLists(options) {
     if (config.rsvp && rsvpEventsList) {
         clearNode(rsvpEventsList);
     }
+    if (config.hosting && hostingEventsList) {
+        clearNode(hostingEventsList);
+    }
     if (config.upcoming && upcomingEmptyState) {
         upcomingEmptyState.textContent = '';
     }
     if (config.rsvp && rsvpEmptyState) {
         rsvpEmptyState.textContent = '';
+    }
+    if (config.hosting && hostingEmptyState) {
+        hostingEmptyState.textContent = '';
     }
 }
 
